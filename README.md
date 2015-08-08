@@ -9,14 +9,17 @@ Still in very early development.
 
 ## Installation
 
-```
+```bash
 go get github.com/hectorj/gpm
 ```
 
 ## Usage
 
-```
+```bash
+# Go to your package directory, wherever that is
 cd $GOPATH/src/myPackage
+# run gpm on the go files from which you want to vendor imported packages
 gpm *.go
+# if everything went well, you have new git submodules you can commit
 git commit -m "Vendoring as git submodules done by gpm"
 ```
