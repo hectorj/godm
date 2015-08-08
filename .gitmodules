@@ -1,0 +1,3 @@
+[submodule "/home/hectorj/go/src/github.com/hectorj/gpm/vendor/golang.org/x/tools"]
+	path = /home/hectorj/go/src/github.com/hectorj/gpm/vendor/golang.org/x/tools
+	url = https://go.googlesource.com/tools
