@@ -49,6 +49,7 @@ func vendor(dir string, importPath string) (err error, vendored bool) {
 	if err != nil {
 		return
 	}
+	importPath = importRoot[4:] // removes "src/"
 	absoluteImportRoot := path.Join(gopath, importRoot)
 
 	var commitHash, remoteUrl string
@@ -94,7 +95,7 @@ func vendor(dir string, importPath string) (err error, vendored bool) {
 	}
 	absoluteMainRoot := path.Join(gopath, mainRoot)
 
-	targetPath := path.Join(absoluteMainRoot, "vendor", importRoot[4:])
+	targetPath := path.Join("vendor", importPath)
 	if _, err = os.Stat(targetPath); err == nil {
 		//err = fmt.Errorf("%q already exists", targetPath)
 		// Already exists, skipping
@@ -109,15 +110,15 @@ func vendor(dir string, importPath string) (err error, vendored bool) {
 		output, err = cmd.CombinedOutput()
 		if err != nil {
 			// @TODO : proper logging with verbose option
-			//fmt.Println(string(output))
+			fmt.Println(string(output))
 			return
 		}
 
 		cmd = exec.Command("git", "checkout", commitHash)
-		cmd.Dir = targetPath
+		cmd.Dir = path.Join(absoluteMainRoot, targetPath)
 		output, err = cmd.CombinedOutput()
 		if err != nil {
-			//fmt.Println(string(output))
+			fmt.Println(string(output))
 			return
 		}
 
