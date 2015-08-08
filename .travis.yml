@@ -1,0 +1,12 @@
+language: go
+go:
+ - 1.5rc1
+ - tip
+before_install:
+ - go get -u github.com/axw/gocov/gocov
+ - go get -u github.com/mattn/goveralls
+ - go get -u golang.org/x/tools/cmd/cover
+ - go get -u github.com/golang/lint/golint
+ - go get -u golang.org/x/tools/cmd/goimports
+script:
+ - ./gosweep.sh && $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
