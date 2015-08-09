@@ -14,7 +14,7 @@ A go1.5+ package manager.
   - [Status](#status)
   - [Installation](#installation)
   - [Usage](#usage)
-    - [Help](#help)
+    - [help](#help)
     - [vendor](#vendor)
     - [remove](#remove)
   - [Bash Autocompletion](#bash-autocompletion)
