@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"runtime"
-
-	"golang.org/x/tools/go/vcs"
 )
 
 func vendorImport(dir string, importPath string) (err error, vendored bool) {
@@ -36,45 +34,30 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 		return
 	}
 
-	var (
-		importVCS  *vcs.Cmd
-		importRoot string
-	)
-	importVCS, importRoot, err = vcs.FromDir(pkgDir, gopath)
+	var importRoot string
+	importRoot, err = gitGetRootDir(pkgDir)
 	if err != nil {
 		return
 	}
-	importPath = importRoot[4:] // removes "src/"
-	absoluteImportRoot := path.Join(gopath, importRoot)
+	importPath = importRoot[len(gopath)+5:] // removes "$GOPATH/src/"
 
 	var commitHash, remoteURL string
-	//var output []byte
-	switch importVCS.Name {
-	case "Git":
-		commitHash, err = gitGetCurrentCommitHash(absoluteImportRoot)
-		if err != nil {
-			return
-		}
 
-		remoteURL, err = gitGetRemoteURI(absoluteImportRoot, false)
-		if err != nil {
-			return
-		}
-	default:
-		// @TODO : mercurial subrepositories (if `go get` supports them)
-		err = fmt.Errorf("Unsupported VCS for dir %q : %q", pkgDir, importVCS.Name)
-		return
-	}
-
-	var (
-		mainVCS  *vcs.Cmd
-		mainRoot string
-	)
-	mainVCS, mainRoot, err = vcs.FromDir(dir, gopath)
+	commitHash, err = gitGetCurrentCommitHash(importRoot)
 	if err != nil {
 		return
 	}
-	absoluteMainRoot := path.Join(gopath, mainRoot)
+
+	remoteURL, err = gitGetRemoteURI(importRoot, false)
+	if err != nil {
+		return
+	}
+
+	var mainRoot string
+	mainRoot, err = gitGetRootDir(dir)
+	if err != nil {
+		return
+	}
 
 	targetPath := path.Join("vendor", importPath)
 	if _, err = os.Stat(targetPath); err == nil {
@@ -82,27 +65,20 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 		// Already exists, skipping
 		return
 	}
-	err = nil
 
-	switch mainVCS.Name {
-	case "Git":
-		_, err = gitAddSubmodule(absoluteMainRoot, remoteURL, targetPath)
-		if err != nil {
-			// @TODO : proper logging with verbose option
-			//fmt.Println(string(output))
-			return
-		}
-
-		_, err = gitCheckoutCommit(path.Join(absoluteMainRoot, targetPath), commitHash)
-		if err != nil {
-			//fmt.Println(string(output))
-			return
-		}
-
-	default:
-		err = fmt.Errorf("Unsupported VCS for dir %q : %q", dir, mainVCS.Name)
+	_, err = gitAddSubmodule(mainRoot, remoteURL, targetPath)
+	if err != nil {
+		// @TODO : proper logging with verbose option
+		//fmt.Println(string(output))
 		return
 	}
+
+	_, err = gitCheckoutCommit(path.Join(mainRoot, targetPath), commitHash)
+	if err != nil {
+		//fmt.Println(string(output))
+		return
+	}
+
 	vendored = true
 	return
 }

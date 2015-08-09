@@ -1,6 +1,3 @@
-[submodule "vendor/golang.org/x/tools"]
-	path = vendor/golang.org/x/tools
-	url = https://go.googlesource.com/tools
 [submodule "vendor/github.com/stretchr/testify"]
 	path = vendor/github.com/stretchr/testify
 	url = https://github.com/stretchr/testify

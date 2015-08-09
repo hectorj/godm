@@ -98,3 +98,14 @@ func gitGetCurrentCommitHash(repoDir string) (string, error) {
 	}
 	return strings.Trim(string(output), "\n"), nil
 }
+
+func gitGetRootDir(dir string) (string, error) {
+	cmd := exec.Command(gitCommand, "rev-parse", "--show-toplevel")
+	cmd.Dir = dir
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.Trim(string(output), "\n"), nil
+}

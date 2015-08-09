@@ -33,7 +33,10 @@ func main() {
 			fmt.Print("\n")
 		}
 	case actionRemove:
-		removeImport(app.currentDir, app.removeParameters.importPath)
+		err := removeImport(app.currentDir, app.removeParameters.importPath)
+		if err != nil {
+			fatalErrorf("Error removing import : %s", err.Error())
+		}
 	default:
 		panic("Unknown action")
 	}

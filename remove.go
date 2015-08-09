@@ -4,21 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path"
-
-	"golang.org/x/tools/go/vcs"
 )
 
 func removeImport(dir string, importPath string) (err error) {
-	gopath := os.Getenv("GOPATH")
-	var (
-		mainVCS  *vcs.Cmd
-		mainRoot string
-	)
-	mainVCS, mainRoot, err = vcs.FromDir(dir, gopath)
+	var mainRoot string
+	mainRoot, err = gitGetRootDir(dir)
 	if err != nil {
 		return
 	}
-	absoluteMainRoot := path.Join(gopath, mainRoot)
 
 	targetPath := path.Join("vendor", importPath)
 	if _, err = os.Stat(targetPath); err != nil {
@@ -26,12 +19,36 @@ func removeImport(dir string, importPath string) (err error) {
 	}
 	err = nil
 
-	switch mainVCS.Name {
-	case "Git":
-		_, err = gitRemoveSubmodule(absoluteMainRoot, targetPath)
-	default:
-		err = fmt.Errorf("Unsupported VCS for dir %q : %q", dir, mainVCS.Name)
+	var importRoot string
+	absoluteImportPath := path.Join(mainRoot, targetPath)
+	importRoot, err = gitGetRootDir(absoluteImportPath)
+
+	if err != nil {
+		return
 	}
+	importRoot = importRoot[len(mainRoot)+1:]
+
+	if importRoot != importPath {
+		fmt.Printf("Removing %q implies removing the whole %q submodule. Do you wish to continue ? (Y/n) : ", targetPath, importRoot)
+		var response string
+		if _, err = fmt.Scanln(&response); err != nil {
+			if err.Error() == "unexpected newline" {
+				err = nil
+			} else {
+				return
+			}
+		}
+		if response == "" || response[:1] == "y" || response[:1] == "Y" {
+			targetPath = importRoot
+		} else {
+			fmt.Println("Cancelled.")
+			return
+		}
+	}
+
+	//var output []byte
+	_, err = gitRemoveSubmodule(mainRoot, targetPath)
+	//fmt.Println(string(output))
 
 	return
 }
