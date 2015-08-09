@@ -10,19 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-
-}
-
-const (
-	testRepoDir                   = "./gpm-test-repo"
-	testRepoRemote                = "https://github.com/hectorj/gpm-test-repo.git"
-	testRepoCommitHash            = "9bc1c419ff8b07737b880e2bacd2f7d029c91b69"
-	testRepoExistingSubmodulePath = "submodule-to-remove"
-	testRepoExistingSubdirPath    = "subdir"
-	testRepoCommitMessage         = "Cats."
-)
-
 func TestGitGetRemoteURI(t *testing.T) {
 	remote, err := gitGetRemoteURI(testRepoDir, false)
 
