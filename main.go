@@ -5,8 +5,17 @@ import (
 
 	"fmt"
 
+	"io/ioutil"
+
+	"path"
+	"path/filepath"
+
+	"regexp"
+
 	"github.com/codegangsta/cli"
 )
+
+var submodulesRegexp = regexp.MustCompile(`\[submodule "vendor/([^"]+)"\]`)
 
 func main() {
 	checkGo15VendorActivated()
@@ -32,6 +41,17 @@ func main() {
 				},
 			},
 			Action: vendor,
+			BashComplete: func(c *cli.Context) {
+				// This will complete if no args are passed
+				fmt.Println(".")
+				fileInfos, err := ioutil.ReadDir(".")
+				if err != nil {
+					return
+				}
+				for _, fileInfo := range fileInfos {
+					fmt.Println(fileInfo.Name())
+				}
+			},
 		},
 		{
 			Name:    "remove",
@@ -44,6 +64,25 @@ func main() {
 				},
 			},
 			Action: remove,
+			BashComplete: func(c *cli.Context) {
+				currentDir, err := filepath.Abs(path.Dir(os.Args[0]))
+				if err != nil {
+					return
+				}
+				gitRoot, err := gitGetRootDir(currentDir)
+				if err != nil {
+					return
+				}
+				content, err := ioutil.ReadFile(path.Join(gitRoot, ".gitmodules"))
+				if err != nil {
+					return
+				}
+
+				matches := submodulesRegexp.FindAllStringSubmatch(string(content), -1)
+				for _, match := range matches {
+					fmt.Println(match[1])
+				}
+			},
 		},
 	}
 	app.RunAndExitOnError()
