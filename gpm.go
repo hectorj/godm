@@ -65,7 +65,7 @@ func listFiles(fileNames []string, recursive bool) ([]string, error) {
 	var err error
 
 	for _, fileName := range fileNames {
-		err = listFile(fileName, &files, recursive, true)
+		err = listFile(fileName, &files, recursive, "")
 		if err != nil {
 			return nil, err
 		}
@@ -73,21 +73,22 @@ func listFiles(fileNames []string, recursive bool) ([]string, error) {
 	return files, nil
 }
 
-func listFile(filename string, list *[]string, recursiveScanning, firstLevel bool) error {
-	fileInfo, err := os.Stat(filename)
+func listFile(filename string, list *[]string, recursiveScanning bool, currentPath string) error {
+	fullPath := path.Join(currentPath, filename)
+	fileInfo, err := os.Stat(fullPath)
 	if err != nil {
 		err = fmt.Errorf("Error with file %q : %q\n", filename, err.Error())
 		return err
 	}
 	if fileInfo.IsDir() {
-		if recursiveScanning || firstLevel {
+		if recursiveScanning || currentPath == "" {
 			fileInfos, err := ioutil.ReadDir(filename)
 			if err != nil {
 				return err
 			}
 			for _, fileInfo = range fileInfos {
 				if strings.HasSuffix(fileInfo.Name(), ".go") {
-					err = listFile(fileInfo.Name(), list, recursiveScanning, false)
+					err = listFile(fileInfo.Name(), list, recursiveScanning, fullPath)
 					if err != nil {
 						return err
 					}
