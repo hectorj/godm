@@ -25,6 +25,10 @@ A go1.5+ package manager.
 
 Still in very early development.
 
+## Dependencies
+
+Go 1.5+ (with `GO15VENDOREXPERIMENT=1`, else even if it runs it's kind of pointless), and Git (available in your $PATH)
+
 ## Installation
 
 ```bash
