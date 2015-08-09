@@ -69,13 +69,13 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 	var output []byte
 	output, err = gitAddSubmodule(mainRoot, remoteURL, targetPath)
 	if err != nil {
-		log.Debug(string(output))
+		Log.Debug(string(output))
 		return
 	}
 
 	_, err = gitCheckoutCommit(path.Join(mainRoot, targetPath), commitHash)
 	if err != nil {
-		log.Debug(string(output))
+		Log.Debug(string(output))
 		return
 	}
 

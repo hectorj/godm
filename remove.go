@@ -54,7 +54,7 @@ func removeImport(dir string, importPath string, preApproved bool) (err error) {
 
 	var output []byte
 	output, err = gitRemoveSubmodule(mainRoot, targetPath)
-	log.Debug(string(output))
+	Log.Debug(string(output))
 
 	return
 }

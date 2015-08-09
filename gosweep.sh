@@ -15,7 +15,7 @@ set -e
 test -z "$(gofmt -l -w ./*.go     | tee /dev/stderr)"
 test -z "$(goimports -l -w ./*.go | tee /dev/stderr)"
 #test -z "$(golint .          | tee /dev/stderr)"
-go vet .
+go tool vet -printf=false *.go
 env GORACE="halt_on_error=1" go test -short -race .
 
 # Run test coverage on each subdirectories and merge the coverage profile.

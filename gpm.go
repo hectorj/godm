@@ -61,11 +61,11 @@ func vendor(c *cli.Context) {
 
 		err, ok := vendorImport(currentDir, importPath)
 		if err != nil {
-			log.Error("%s : Failed (%s)", importPath, err.Error())
+			Log.Error("%s : Failed (%s)", importPath, err.Error())
 		} else if !ok {
-			log.Info("%s : Skipped", importPath)
+			Log.Info("%s : Skipped", importPath)
 		} else {
-			log.Notice("%s : OK", importPath)
+			Log.Notice("%s : OK", importPath)
 			fmt.Println(importPath)
 		}
 	}
@@ -92,7 +92,7 @@ func listFile(filename string, list *[]string, recursiveScanning bool, currentPa
 	}
 
 	fullPath := path.Join(currentPath, filename)
-	log.Debug(fullPath)
+	Log.Debug(fullPath)
 	fileInfo, err := os.Stat(fullPath)
 	if err != nil {
 		err = fmt.Errorf("Error with file %q : %q\n", filename, err.Error())

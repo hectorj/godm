@@ -17,7 +17,7 @@ import (
 	logging "github.com/op/go-logging"
 )
 
-var log = logging.MustGetLogger("gpm")
+var Log = logging.MustGetLogger("gpm")
 
 var submodulesRegexp = regexp.MustCompile(`\[submodule "vendor/([^"]+)"\]`)
 
@@ -48,7 +48,7 @@ func main() {
 			backend.SetLevel(logging.WARNING, "")
 		}
 
-		log.SetBackend(backend)
+		Log.SetBackend(backend)
 		return nil
 	}
 	app.Commands = []cli.Command{
@@ -114,7 +114,7 @@ func main() {
 }
 
 func errorf(format string, args ...interface{}) {
-	log.Error(format, args...)
+	Log.Error(format, args...)
 }
 
 func fatalErrorf(format string, args ...interface{}) {
@@ -124,6 +124,6 @@ func fatalErrorf(format string, args ...interface{}) {
 
 func checkGo15VendorActivated() {
 	if os.Getenv("GO15VENDOREXPERIMENT") != "1" {
-		log.Warning("Warning : GO15VENDOREXPERIMENT is not activated.\ngpm relies entirely on that vendoring feature\nTo activate it, run `export GO15VENDOREXPERIMENT=1`")
+		Log.Warning("Warning : GO15VENDOREXPERIMENT is not activated.\ngpm relies entirely on that vendoring feature\nTo activate it, run `export GO15VENDOREXPERIMENT=1`")
 	}
 }
