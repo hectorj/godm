@@ -2,22 +2,23 @@ package main
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"testing"
+
+	"io"
+	"io/ioutil"
+	"os"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVisitor(t *testing.T) {
+func TestExtractImports(t *testing.T) {
 	testCases := map[string]struct {
 		src    string
-		result map[string]struct{}
+		result []string
 	}{
 		"empty": {
 			src:    "package main",
-			result: map[string]struct{}{},
+			result: nil,
 		},
 		"simple": {
 			src: `
@@ -25,8 +26,8 @@ func TestVisitor(t *testing.T) {
 
 			import "test"
 			`,
-			result: map[string]struct{}{
-				"test": struct{}{},
+			result: []string{
+				"test",
 			},
 		},
 		"multiple": {
@@ -38,9 +39,9 @@ func TestVisitor(t *testing.T) {
 				"test2"
 			)
 			`,
-			result: map[string]struct{}{
-				"test":  struct{}{},
-				"test2": struct{}{},
+			result: []string{
+				"test",
+				"test2",
 			},
 		},
 		"duplicates": {
@@ -52,8 +53,8 @@ func TestVisitor(t *testing.T) {
 				"test"
 			)
 			`,
-			result: map[string]struct{}{
-				"test": struct{}{},
+			result: []string{
+				"test",
 			},
 		},
 		"alias": {
@@ -65,25 +66,23 @@ func TestVisitor(t *testing.T) {
 				test "test2"
 			)
 			`,
-			result: map[string]struct{}{
-				"test":  struct{}{},
-				"test2": struct{}{},
+			result: []string{
+				"test",
+				"test2",
 			},
 		},
 	}
 
 	for caseName, testCase := range testCases {
 		errorMessage := fmt.Sprintf("Test case %q failed", caseName)
-		v := &visitor{
-			ImportPathsMap: make(map[string]struct{}),
-		}
 
-		fset := token.NewFileSet() // positions are relative to fset
-		f, err := parser.ParseFile(fset, "src.go", testCase.src, parser.ParseComments)
+		file, err := ioutil.TempFile("", "gpm-extractImports-test-"+caseName)
 		assert.Nil(t, err, errorMessage)
+		defer os.Remove(file.Name())
 
-		ast.Walk(v, f)
-		assert.Equal(t, testCase.result, v.ImportPathsMap, errorMessage)
-		assert.Equal(t, len(v.ImportPaths), len(v.ImportPathsMap), errorMessage)
+		io.WriteString(file, testCase.src)
+
+		imports, err := extractImports([]string{file.Name()})
+		assert.Equal(t, testCase.result, imports, errorMessage)
 	}
 }
