@@ -25,6 +25,9 @@ func TestGitGetCurrentCommitHash(t *testing.T) {
 }
 
 func TestGitAddSubmodule(t *testing.T) {
+	// Skipping because of https://github.com/hectorj/gpm/issues/1
+	t.SkipNow()
+
 	targetPath := "inception"
 
 	output, err := gitAddSubmodule(testRepoDir, testRepoRemote, targetPath)
