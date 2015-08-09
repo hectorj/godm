@@ -18,9 +18,19 @@ go get github.com/hectorj/gpm
 
 ## Usage
 
+### Help
+
+Auto-generated help is available like this :
+
+```bash
+gpm --help
+```
+
+(thanks to https://github.com/codegangsta/cli)
+
 ### vendor
 
-The `vendor` sub-command takes the go files you point it to, extract imports from them, and vendor this imports if possible and necessary.
+The `vendor` sub-command takes the go files you point it to, extract imports from them, and vendor these imports if possible and necessary.
 
 ```bash
 # Go to your package directory, wherever that is.
@@ -31,11 +41,11 @@ gpm vendor -r .
 git commit -m "Vendoring as git submodules done by gpm"
 ```
 
-It also takes directory, and can scan them recursively if the `-r` flag is set
+It also takes directories, and can scan them recursively if the `-r` flag is set
 
 ### remove
 
-The `remove` sub-command un-vendors an import path.
+The `remove` sub-command unvendors an import path.
 ```bash
 # Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
@@ -47,4 +57,4 @@ git commit -m "Unvendoring done by gpm"
 
 ### Bash Autocompletion
 
-Copy `gpm_bash_autocomplete.bash` to `/etc/bash_completion.d/` to get command autocompletion
+Copy [gpm_bash_autocomplete.bash](gpm_bash_autocomplete.bash) to `/etc/bash_completion.d/` to get command autocompletion (highly recommended)
