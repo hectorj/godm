@@ -4,18 +4,13 @@ import (
 	"os"
 	"path"
 
-	"os/exec"
-
 	"fmt"
-	"regexp"
 	"strings"
 
 	"runtime"
 
 	"golang.org/x/tools/go/vcs"
 )
-
-var remoteExtractRegexp = regexp.MustCompile(`^([^\s]+)\s+([^\s]+) \(fetch\)`)
 
 func vendorImport(dir string, importPath string) (err error, vendored bool) {
 	gopath := os.Getenv("GOPATH")
@@ -52,33 +47,19 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 	importPath = importRoot[4:] // removes "src/"
 	absoluteImportRoot := path.Join(gopath, importRoot)
 
-	var commitHash, remoteUrl string
-	var output []byte
+	var commitHash, remoteURL string
+	//var output []byte
 	switch importVCS.Name {
 	case "Git":
-		cmd := exec.Command("git", "rev-parse", "--verify", "HEAD")
-		cmd.Dir = absoluteImportRoot
-
-		output, err = cmd.Output()
+		commitHash, err = gitGetCurrentCommitHash(absoluteImportRoot)
 		if err != nil {
 			return
 		}
-		commitHash = strings.Trim(string(output), "\n")
 
-		cmd = exec.Command("git", "remote", "-v")
-		cmd.Dir = absoluteImportRoot
-		output, err = cmd.Output()
+		remoteURL, err = gitGetRemoteURI(absoluteImportRoot, false)
 		if err != nil {
 			return
 		}
-		matches := remoteExtractRegexp.FindStringSubmatch(string(output))
-		// @TODO : add an option to allow local repositories ?
-		if matches == nil {
-			err = fmt.Errorf("Could not extract remote URL from %q", absoluteImportRoot)
-			return
-		}
-		remoteUrl = matches[2]
-
 	default:
 		// @TODO : mercurial subrepositories (if `go get` supports them)
 		err = fmt.Errorf("Unsupported VCS for dir %q : %q", pkgDir, importVCS.Name)
@@ -105,20 +86,16 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 
 	switch mainVCS.Name {
 	case "Git":
-		cmd := exec.Command("git", "submodule", "add", "-f", remoteUrl, targetPath)
-		cmd.Dir = absoluteMainRoot
-		output, err = cmd.CombinedOutput()
+		_, err = gitAddSubmodule(absoluteMainRoot, remoteURL, targetPath)
 		if err != nil {
 			// @TODO : proper logging with verbose option
-			fmt.Println(string(output))
+			//fmt.Println(string(output))
 			return
 		}
 
-		cmd = exec.Command("git", "checkout", commitHash)
-		cmd.Dir = path.Join(absoluteMainRoot, targetPath)
-		output, err = cmd.CombinedOutput()
+		_, err = gitCheckoutCommit(path.Join(absoluteMainRoot, targetPath), commitHash)
 		if err != nil {
-			fmt.Println(string(output))
+			//fmt.Println(string(output))
 			return
 		}
 
