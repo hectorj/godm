@@ -7,14 +7,29 @@ import (
 	"strings"
 )
 
+var gitCommand string
+
+func init() {
+	var err error
+	gitCommand, err = exec.LookPath("git")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func gitClone(targetPath, remoteURI string) ([]byte, error) {
+	cmd := exec.Command(gitCommand, "clone", remoteURI, targetPath)
+	return cmd.CombinedOutput()
+}
+
 func gitAddSubmodule(repoDir, remoteURI, targetPath string) ([]byte, error) {
-	cmd := exec.Command("git", "submodule", "add", "-f", remoteURI, targetPath)
+	cmd := exec.Command(gitCommand, "submodule", "add", "-f", remoteURI, targetPath)
 	cmd.Dir = repoDir
 	return cmd.CombinedOutput()
 }
 
 func gitCheckoutCommit(repoDir, commitHash string) ([]byte, error) {
-	cmd := exec.Command("git", "checkout", commitHash)
+	cmd := exec.Command(gitCommand, "checkout", commitHash)
 	cmd.Dir = repoDir
 	return cmd.CombinedOutput()
 }
@@ -22,7 +37,7 @@ func gitCheckoutCommit(repoDir, commitHash string) ([]byte, error) {
 var remoteExtractRegexp = regexp.MustCompile(`^([^\s]+)\s+([^\s]+) \(fetch\)`)
 
 func gitGetRemoteURI(repoDir string, allowLocal bool) (string, error) {
-	cmd := exec.Command("git", "remote", "-v")
+	cmd := exec.Command(gitCommand, "remote", "-v")
 	cmd.Dir = repoDir
 	output, err := cmd.Output()
 	if err != nil {
@@ -42,7 +57,7 @@ func gitGetRemoteURI(repoDir string, allowLocal bool) (string, error) {
 }
 
 func gitGetCurrentCommitHash(repoDir string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--verify", "HEAD")
+	cmd := exec.Command(gitCommand, "rev-parse", "--verify", "HEAD")
 	cmd.Dir = repoDir
 
 	output, err := cmd.Output()
