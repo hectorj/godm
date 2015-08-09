@@ -1,8 +1,16 @@
+# gpm
+A go1.5+ package manager.
+
+[![Build Status](https://travis-ci.org/hectorj/gpm.svg?branch=master)](https://travis-ci.org/hectorj/gpm) [![GoDoc](https://godoc.org/github.com/hectorj/gpm?status.svg)](https://godoc.org/github.com/hectorj/gpm/) [![Coverage Status](https://coveralls.io/repos/hectorj/gpm/badge.svg?branch=master)](https://coveralls.io/r/hectorj/gpm?branch=master)
+
+## Table of Contents
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [gpm](#gpm)
+  - [Table of Contents](#table-of-contents)
   - [Status](#status)
   - [Installation](#installation)
   - [Usage](#usage)
@@ -12,11 +20,6 @@
   - [Bash Autocompletion](#bash-autocompletion)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# gpm
-A go1.5+ package manager.
-
-[![Build Status](https://travis-ci.org/hectorj/gpm.svg?branch=master)](https://travis-ci.org/hectorj/gpm) [![GoDoc](https://godoc.org/github.com/hectorj/gpm?status.svg)](https://godoc.org/github.com/hectorj/gpm/) [![Coverage Status](https://coveralls.io/repos/hectorj/gpm/badge.svg?branch=master)](https://coveralls.io/r/hectorj/gpm?branch=master)
 
 ## Status
 
