@@ -36,7 +36,7 @@ go get github.com/hectorj/gpm
 
 ## Usage
 
-### Help
+### help
 
 Auto-generated help is available like this :
 
