@@ -44,3 +44,7 @@ gpm remove github.com/my/import/path
 # If everything went well, you have a git submodule removal you can commit.
 git commit -m "Unvendoring done by gpm"
 ```
+
+### Bash Autocompletion
+
+Copy `gpm_bash_autocomplete.bash` to `/etc/bash_completion.d/` to get command autocompletion

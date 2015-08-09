@@ -1,94 +1,76 @@
 package main
 
 import (
-	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
-	"path/filepath"
 	"strings"
+
+	"path/filepath"
+
+	"path"
+
+	"github.com/codegangsta/cli"
 )
 
-type actionType int
-
-const (
-	actionVendor actionType = iota
-	actionRemove
-)
-
-type app struct {
-	currentDir       string
-	action           actionType
-	vendorParameters struct {
-		recursiveScanning bool
-		files             []string
+func remove(c *cli.Context) {
+	importPath := c.Args().First()
+	if importPath == "" {
+		cli.ShowCommandHelp(c, "remove")
+		fatalErrorf("No import path given")
 	}
-	removeParameters struct {
-		importPath  string
-		preApproved bool
-	}
-}
 
-func (self *app) parseCommandLineArguments() (err error) {
-	flag.BoolVar(&self.removeParameters.preApproved, "y", false, "Remove the submodule without asking confirmation, even if the import path doesn't point to the submodule's root")
-	flag.BoolVar(&self.vendorParameters.recursiveScanning, "r", false, "Scan dirs recursively")
-	flag.Parse()
-
-	self.currentDir, err = filepath.Abs(path.Dir(os.Args[0]))
+	err := removeImport(getAbsoluteCurrentDirOrExit(), importPath, c.Bool("y"))
 	if err != nil {
-		return
+		fatalErrorf("Error removing import : %s", err.Error())
 	}
-
-	actionName := flag.Arg(0)
-	switch actionName {
-	case "vendor":
-		self.action = actionVendor
-
-		err = self.parseVendorCommandLineArguments()
-	case "remove":
-		self.action = actionRemove
-
-		err = self.parseRemoveCommandLineArguments()
-	case "":
-		err = errors.New("Missing action's argument")
-	default:
-		err = fmt.Errorf("Unknown action %q", actionName)
-	}
-
-	return
 }
 
-func (self *app) parseRemoveCommandLineArguments() error {
-	self.removeParameters.importPath = flag.Arg(1)
-	if self.removeParameters.importPath == "" {
-		return errors.New("No import path given")
+func vendor(c *cli.Context) {
+	paths := c.Args().Tail()
+	if len(paths) == 0 {
+		cli.ShowCommandHelp(c, "vendor")
+		fatalErrorf("No paths given")
 	}
 
-	return nil
+	currentDir := getAbsoluteCurrentDirOrExit()
+
+	files, err := listFiles(paths, c.Bool("r"))
+	if err != nil {
+		fatalErrorf("Error listing files to scan for imports : %s", err.Error())
+	}
+
+	imports, err := extractImports(files)
+	if err != nil {
+		fatalErrorf("Error scanning imports from files : %s", err.Error())
+	}
+
+	for _, importPath := range imports {
+
+		fmt.Print(importPath, " : ")
+		err, ok := vendorImport(currentDir, importPath)
+		if err != nil {
+			fmt.Print("Failed (", err.Error(), ")")
+		} else if !ok {
+			fmt.Print("Skipped")
+		} else {
+			fmt.Print("OK")
+		}
+		fmt.Print("\n")
+	}
 }
 
-func (self *app) parseVendorCommandLineArguments() error {
-	// take all args without the flags and the action name
-	pathArgs := flag.Args()[1:]
-
-	pathsCount := len(pathArgs)
-	if pathsCount == 0 {
-		return errors.New("No paths given")
-	}
-
-	// pre-allocation
-	self.vendorParameters.files = make([]string, 0, pathsCount)
+func listFiles(fileNames []string, recursive bool) ([]string, error) {
+	files := make([]string, 0, len(fileNames))
 	var err error
 
-	for _, fileName := range pathArgs {
-		err = listFile(fileName, &self.vendorParameters.files, self.vendorParameters.recursiveScanning, true)
+	for _, fileName := range fileNames {
+		err = listFile(fileName, &files, recursive, true)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return files, nil
 }
 
 func listFile(filename string, list *[]string, recursiveScanning, firstLevel bool) error {
@@ -116,4 +98,12 @@ func listFile(filename string, list *[]string, recursiveScanning, firstLevel boo
 		*list = append(*list, filename)
 	}
 	return nil
+}
+
+func getAbsoluteCurrentDirOrExit() string {
+	currentDir, err := filepath.Abs(path.Dir(os.Args[0]))
+	if err != nil {
+		fatalErrorf("Error getting current absolute path : %s", err.Error())
+	}
+	return currentDir
 }
