@@ -84,5 +84,6 @@ func TestVisitor(t *testing.T) {
 
 		ast.Walk(v, f)
 		assert.Equal(t, testCase.result, v.ImportPathsMap, errorMessage)
+		assert.Equal(t, len(v.ImportPaths), len(v.ImportPathsMap), errorMessage)
 	}
 }
