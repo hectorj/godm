@@ -10,6 +10,8 @@ import (
 
 	"path"
 
+	"regexp"
+
 	"github.com/codegangsta/cli"
 )
 
@@ -27,7 +29,7 @@ func remove(c *cli.Context) {
 }
 
 func vendor(c *cli.Context) {
-	paths := c.Args().Tail()
+	paths := []string(c.Args())
 	if len(paths) == 0 {
 		cli.ShowCommandHelp(c, "vendor")
 		fatalErrorf("No paths given")
@@ -35,7 +37,17 @@ func vendor(c *cli.Context) {
 
 	currentDir := getAbsoluteCurrentDirOrExit()
 
-	files, err := listFiles(paths, c.Bool("r"))
+	excludePatterns := c.StringSlice("exclude")
+	excludes := make([]*regexp.Regexp, len(excludePatterns))
+	var err error
+	for index, pattern := range excludePatterns {
+		excludes[index], err = regexp.Compile(pattern)
+		if err != nil {
+			fatalErrorf("Invalid regexp pattern %q : %s", pattern, err.Error())
+		}
+	}
+
+	files, err := listFiles(paths, c.Bool("r"), excludes)
 	if err != nil {
 		fatalErrorf("Error listing files to scan for imports : %s", err.Error())
 	}
@@ -47,25 +59,24 @@ func vendor(c *cli.Context) {
 
 	for _, importPath := range imports {
 
-		fmt.Print(importPath, " : ")
 		err, ok := vendorImport(currentDir, importPath)
 		if err != nil {
-			fmt.Print("Failed (", err.Error(), ")")
+			log.Error("%s : Failed (%s)", importPath, err.Error())
 		} else if !ok {
-			fmt.Print("Skipped")
+			log.Info("%s : Skipped", importPath)
 		} else {
-			fmt.Print("OK")
+			log.Notice("%s : OK", importPath)
+			fmt.Println(importPath)
 		}
-		fmt.Print("\n")
 	}
 }
 
-func listFiles(fileNames []string, recursive bool) ([]string, error) {
+func listFiles(fileNames []string, recursive bool, excludes []*regexp.Regexp) ([]string, error) {
 	files := make([]string, 0, len(fileNames))
 	var err error
 
 	for _, fileName := range fileNames {
-		err = listFile(fileName, &files, recursive, "")
+		err = listFile(fileName, &files, recursive, "", excludes)
 		if err != nil {
 			return nil, err
 		}
@@ -73,8 +84,15 @@ func listFiles(fileNames []string, recursive bool) ([]string, error) {
 	return files, nil
 }
 
-func listFile(filename string, list *[]string, recursiveScanning bool, currentPath string) error {
+func listFile(filename string, list *[]string, recursiveScanning bool, currentPath string, excludes []*regexp.Regexp) error {
+	for _, excludeRegexp := range excludes {
+		if excludeRegexp.MatchString(filename) {
+			return nil
+		}
+	}
+
 	fullPath := path.Join(currentPath, filename)
+	log.Debug(fullPath)
 	fileInfo, err := os.Stat(fullPath)
 	if err != nil {
 		err = fmt.Errorf("Error with file %q : %q\n", filename, err.Error())
@@ -82,13 +100,13 @@ func listFile(filename string, list *[]string, recursiveScanning bool, currentPa
 	}
 	if fileInfo.IsDir() {
 		if recursiveScanning || currentPath == "" {
-			fileInfos, err := ioutil.ReadDir(filename)
+			fileInfos, err := ioutil.ReadDir(fullPath)
 			if err != nil {
 				return err
 			}
 			for _, fileInfo = range fileInfos {
-				if strings.HasSuffix(fileInfo.Name(), ".go") {
-					err = listFile(fileInfo.Name(), list, recursiveScanning, fullPath)
+				if strings.HasSuffix(fileInfo.Name(), ".go") || fileInfo.IsDir() {
+					err = listFile(fileInfo.Name(), list, recursiveScanning, fullPath, excludes)
 					if err != nil {
 						return err
 					}
@@ -96,7 +114,7 @@ func listFile(filename string, list *[]string, recursiveScanning bool, currentPa
 			}
 		}
 	} else {
-		*list = append(*list, filename)
+		*list = append(*list, fullPath)
 	}
 	return nil
 }

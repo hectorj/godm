@@ -13,7 +13,11 @@ import (
 	"regexp"
 
 	"github.com/codegangsta/cli"
+
+	logging "github.com/op/go-logging"
 )
+
+var log = logging.MustGetLogger("gpm")
 
 var submodulesRegexp = regexp.MustCompile(`\[submodule "vendor/([^"]+)"\]`)
 
@@ -29,15 +33,36 @@ func main() {
 			Email: "hector.jusforgues@gmail.com",
 		},
 	}
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "verbose",
+			Usage: "Verbose",
+		},
+	}
 	app.EnableBashCompletion = true
+	app.Before = func(c *cli.Context) error {
+		backend := logging.AddModuleLevel(logging.NewLogBackend(os.Stderr, "", 0))
+		if c.Bool("verbose") {
+			backend.SetLevel(logging.DEBUG, "")
+		} else {
+			backend.SetLevel(logging.WARNING, "")
+		}
+
+		log.SetBackend(backend)
+		return nil
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:  "vendor",
 			Usage: "Scans imports from Go files and vendor them in the current Git repository. Takes files/directories path(s) as arguments",
 			Flags: []cli.Flag{
 				cli.BoolFlag{
-					Name:  "r",
+					Name:  "r,recursive",
 					Usage: "Scan dirs recursively",
+				},
+				cli.StringSliceFlag{
+					Name:  "e,exclude",
+					Usage: "Files/Directories names to exclude from scanning, as regexp.",
 				},
 			},
 			Action: vendor,
@@ -59,7 +84,7 @@ func main() {
 			Usage:   "Unvendors an import path. Takes a single import path as argument",
 			Flags: []cli.Flag{
 				cli.BoolFlag{
-					Name:  "y",
+					Name:  "y,yes",
 					Usage: "Remove the submodule without asking any confirmation",
 				},
 			},
@@ -89,7 +114,7 @@ func main() {
 }
 
 func errorf(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	log.Error(format, args...)
 }
 
 func fatalErrorf(format string, args ...interface{}) {
@@ -99,6 +124,6 @@ func fatalErrorf(format string, args ...interface{}) {
 
 func checkGo15VendorActivated() {
 	if os.Getenv("GO15VENDOREXPERIMENT") != "1" {
-		fmt.Fprint(os.Stderr, "Warning : GO15VENDOREXPERIMENT is not activated.\ngpm relies entirely on that vendoring feature\nTo activate it, run `export GO15VENDOREXPERIMENT=1`\n")
+		log.Warning("Warning : GO15VENDOREXPERIMENT is not activated.\ngpm relies entirely on that vendoring feature\nTo activate it, run `export GO15VENDOREXPERIMENT=1`")
 	}
 }

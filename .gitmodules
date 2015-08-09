@@ -4,3 +4,9 @@
 [submodule "vendor/github.com/codegangsta/cli"]
 	path = vendor/github.com/codegangsta/cli
 	url = https://github.com/codegangsta/cli
+[submodule "vendor/github.com/op/go-logging"]
+	path = vendor/github.com/op/go-logging
+	url = https://github.com/op/go-logging
+[submodule "vendor/github.com/stretchr/objx"]
+	path = vendor/github.com/stretchr/objx
+	url = https://github.com/stretchr/objx

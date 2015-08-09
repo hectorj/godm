@@ -25,8 +25,8 @@ The `vendor` sub-command takes the go files you point it to, extract imports fro
 ```bash
 # Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
-# Run gpm on the go files from which you want to vendor imported packages.
-gpm vendor *.go
+# Run gpm on the go files or directories from which you want to vendor imported packages.
+gpm vendor -r .
 # If everything went well, you have new git submodules you can commit.
 git commit -m "Vendoring as git submodules done by gpm"
 ```

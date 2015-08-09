@@ -52,9 +52,9 @@ func removeImport(dir string, importPath string, preApproved bool) (err error) {
 		targetPath = importRoot
 	}
 
-	//var output []byte
-	_, err = gitRemoveSubmodule(mainRoot, targetPath)
-	//fmt.Println(string(output))
+	var output []byte
+	output, err = gitRemoveSubmodule(mainRoot, targetPath)
+	log.Debug(string(output))
 
 	return
 }
