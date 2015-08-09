@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [gpm](#gpm)
+  - [Status](#status)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Help](#help)
+    - [vendor](#vendor)
+    - [remove](#remove)
+  - [Bash Autocompletion](#bash-autocompletion)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # gpm
 A go1.5+ package manager.
 
@@ -55,6 +70,6 @@ gpm remove github.com/my/import/path
 git commit -m "Unvendoring done by gpm"
 ```
 
-### Bash Autocompletion
+## Bash Autocompletion
 
 Copy [gpm_bash_autocomplete.bash](gpm_bash_autocomplete.bash) to `/etc/bash_completion.d/` to get command autocompletion (highly recommended)
