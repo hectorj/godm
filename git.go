@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
+	"path"
 	"regexp"
 	"strings"
 )
@@ -26,6 +28,36 @@ func gitAddSubmodule(repoDir, remoteURI, targetPath string) ([]byte, error) {
 	cmd := exec.Command(gitCommand, "submodule", "add", "-f", remoteURI, targetPath)
 	cmd.Dir = repoDir
 	return cmd.CombinedOutput()
+}
+
+func gitRemoveSubmodule(repoDir, targetPath string) ([]byte, error) {
+	buf := bytes.Buffer{}
+
+	cmd := exec.Command(gitCommand, "submodule", "deinit", targetPath)
+	cmd.Dir = repoDir
+	tmp, err := cmd.CombinedOutput()
+	if err != nil {
+		return tmp, err
+	}
+	buf.Write(tmp)
+
+	cmd = exec.Command(gitCommand, "rm", "-rf", targetPath)
+	cmd.Dir = repoDir
+	tmp, err = cmd.CombinedOutput()
+	if err != nil {
+		return buf.Bytes(), err
+	}
+	buf.Write(tmp)
+
+	cmd = exec.Command("rm", "-rf", path.Join(".git/modules/", targetPath))
+	cmd.Dir = repoDir
+	tmp, err = cmd.CombinedOutput()
+	if err != nil {
+		return buf.Bytes(), err
+	}
+	buf.Write(tmp)
+
+	return buf.Bytes(), nil
 }
 
 func gitCheckoutCommit(repoDir, commitHash string) ([]byte, error) {
