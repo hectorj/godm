@@ -10,16 +10,19 @@ Still in very early development.
 ## Installation
 
 ```bash
+# If you haven't already, enable the Go 1.5 vendor experiment (personally that line is in my ~/.bashrc).
+export GO15VENDOREXPERIMENT=1
+# Then it's a simple go get.
 go get github.com/hectorj/gpm
 ```
 
 ## Usage
 
 ```bash
-# Go to your package directory, wherever that is
+# Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
-# run gpm on the go files from which you want to vendor imported packages
+# Run gpm on the go files from which you want to vendor imported packages.
 gpm *.go
-# if everything went well, you have new git submodules you can commit
+# If everything went well, you have new git submodules you can commit.
 git commit -m "Vendoring as git submodules done by gpm"
 ```
