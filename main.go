@@ -1,19 +1,14 @@
 package main
 
 import (
-	"os"
-
 	"fmt"
-
 	"io/ioutil"
-
+	"os"
 	"path"
 	"path/filepath"
-
 	"regexp"
 
 	"github.com/codegangsta/cli"
-
 	logging "github.com/op/go-logging"
 )
 

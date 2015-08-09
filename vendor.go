@@ -1,13 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
-
-	"fmt"
-	"strings"
-
 	"runtime"
+	"strings"
 )
 
 func vendorImport(dir string, importPath string) (err error, vendored bool) {

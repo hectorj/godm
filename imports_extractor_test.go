@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"testing"
-
 	"io"
 	"io/ioutil"
 	"os"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )

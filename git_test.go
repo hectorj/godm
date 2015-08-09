@@ -1,57 +1,17 @@
 package main
 
 import (
-	"testing"
-
-	"os"
-
-	"fmt"
-
-	"path"
-
 	"io/ioutil"
-
+	"os"
+	"path"
 	"path/filepath"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func init() {
 
-}
-
-func TestMain(m *testing.M) {
-	// Setup
-	os.RemoveAll(testRepoDir)
-	ouput, err := gitClone(testRepoDir, testRepoRemote)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, string(ouput))
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	ouput, err = gitInitSubmodules(testRepoDir)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, string(ouput))
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	ouput, err = gitUpdateSubmodules(testRepoDir)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, string(ouput))
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-	//
-
-	statusCode := m.Run()
-
-	// Teardown
-	os.RemoveAll(testRepoDir)
-	//
-
-	os.Exit(statusCode)
 }
 
 const (

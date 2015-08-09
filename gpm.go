@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
-
-	"path/filepath"
-
 	"path"
-
+	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/codegangsta/cli"
 )
