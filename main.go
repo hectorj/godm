@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"flag"
 	"fmt"
 )
 
@@ -11,7 +12,9 @@ func main() {
 
 	app := app{}
 	if err := app.parseCommandLineArguments(); err != nil {
-		fatalErrorf("Error parsing CLI arguments : %s", err.Error())
+		errorf("Error parsing CLI arguments : %s", err.Error())
+		flag.Usage() // @TODO : real usage documentation
+		os.Exit(1)
 	}
 
 	switch app.action {
@@ -33,7 +36,7 @@ func main() {
 			fmt.Print("\n")
 		}
 	case actionRemove:
-		err := removeImport(app.currentDir, app.removeParameters.importPath)
+		err := removeImport(app.currentDir, app.removeParameters.importPath, app.removeParameters.preApproved)
 		if err != nil {
 			fatalErrorf("Error removing import : %s", err.Error())
 		}
@@ -43,13 +46,12 @@ func main() {
 	os.Exit(0)
 }
 
-func fatalError(err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
-	os.Exit(1)
+func errorf(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
 }
 
 func fatalErrorf(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	errorf(format, args...)
 	os.Exit(1)
 }
 

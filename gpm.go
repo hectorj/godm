@@ -26,12 +26,16 @@ type app struct {
 		files             []string
 	}
 	removeParameters struct {
-		importPath string
+		importPath  string
+		preApproved bool
 	}
 }
 
 func (self *app) parseCommandLineArguments() (err error) {
+	flag.BoolVar(&self.removeParameters.preApproved, "y", false, "Remove the submodule without asking confirmation, even if the import path doesn't point to the submodule's root")
+	flag.BoolVar(&self.vendorParameters.recursiveScanning, "r", false, "Scan dirs recursively")
 	flag.Parse()
+
 	self.currentDir, err = filepath.Abs(path.Dir(os.Args[0]))
 	if err != nil {
 		return
@@ -61,13 +65,11 @@ func (self *app) parseRemoveCommandLineArguments() error {
 	if self.removeParameters.importPath == "" {
 		return errors.New("No import path given")
 	}
+
 	return nil
 }
 
 func (self *app) parseVendorCommandLineArguments() error {
-	flag.BoolVar(&self.vendorParameters.recursiveScanning, "r", false, "Scan dirs recursively")
-	flag.Parse()
-
 	// take all args without the flags and the action name
 	pathArgs := flag.Args()[1:]
 
