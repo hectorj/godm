@@ -32,6 +32,8 @@ func main() {
 			}
 			fmt.Print("\n")
 		}
+	case actionRemove:
+		removeImport(app.currentDir, app.removeParameters.importPath)
 	default:
 		panic("Unknown action")
 	}

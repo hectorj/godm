@@ -20,15 +20,27 @@ go get github.com/hectorj/gpm
 
 ### vendor
 
-The vendor command takes the go files you point it to, extract imports from them, and vendor this imports if possible and necessary.
+The `vendor` sub-command takes the go files you point it to, extract imports from them, and vendor this imports if possible and necessary.
 
 ```bash
 # Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
 # Run gpm on the go files from which you want to vendor imported packages.
-gpm *.go
+gpm vendor *.go
 # If everything went well, you have new git submodules you can commit.
 git commit -m "Vendoring as git submodules done by gpm"
 ```
 
 It also takes directory, and can scan them recursively if the `-r` flag is set
+
+### remove
+
+The `remove` sub-command un-vendors an import path.
+```bash
+# Go to your package directory, wherever that is.
+cd $GOPATH/src/myPackage
+# Run gpm
+gpm remove github.com/my/import/path
+# If everything went well, you have a git submodule removal you can commit.
+git commit -m "Unvendoring done by gpm"
+```

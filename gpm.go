@@ -14,6 +14,7 @@ type actionType int
 
 const (
 	actionVendor actionType = iota
+	actionRemove
 )
 
 type app struct {
@@ -22,6 +23,9 @@ type app struct {
 	vendorParameters struct {
 		recursiveScanning bool
 		files             []string
+	}
+	removeParameters struct {
+		importPath string
 	}
 }
 
@@ -38,6 +42,10 @@ func (self *app) parseCommandLineArguments() (err error) {
 		self.action = actionVendor
 
 		err = self.parseVendorCommandLineArguments()
+	case "remove":
+		self.action = actionRemove
+
+		err = self.parseRemoveCommandLineArguments()
 	case "":
 		err = errors.New("Missing action's argument")
 	default:
@@ -45,6 +53,14 @@ func (self *app) parseCommandLineArguments() (err error) {
 	}
 
 	return
+}
+
+func (self *app) parseRemoveCommandLineArguments() error {
+	self.removeParameters.importPath = flag.Arg(1)
+	if self.removeParameters.importPath == "" {
+		return errors.New("No import path given")
+	}
+	return nil
 }
 
 func (self *app) parseVendorCommandLineArguments() error {
