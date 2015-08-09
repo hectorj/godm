@@ -17,7 +17,7 @@ import (
 
 var remoteExtractRegexp = regexp.MustCompile(`^([^\s]+)\s+([^\s]+) \(fetch\)`)
 
-func vendor(dir string, importPath string) (err error, vendored bool) {
+func vendorImport(dir string, importPath string) (err error, vendored bool) {
 	gopath := os.Getenv("GOPATH")
 	goroot := runtime.GOROOT()
 	pkgDir := path.Join(gopath, "src", importPath)

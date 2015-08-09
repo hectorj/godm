@@ -1,57 +1,98 @@
 package main
 
 import (
-	"go/token"
-	"os"
-
+	"errors"
+	"flag"
 	"fmt"
-	"go/ast"
-
-	"go/parser"
+	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 )
 
-func main() {
-	fs := token.NewFileSet()
-	v := &visitor{
-		ImportPathsMap: make(map[string]struct{}),
-	}
-	for _, fileName := range os.Args[1:] {
-		fileInfo, err := os.Stat(fileName)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error with file %q : %q\n", fileName, err.Error())
-			os.Exit(1)
-		}
-		if fileInfo.IsDir() {
-			// @TODO : allow directory scanning (with an option for recursive scanning)
-			fmt.Fprintf(os.Stderr, "%q is a dir (not supported yet)", fileName)
-			os.Exit(1)
-		}
-		file, err := parser.ParseFile(fs, fileName, nil, parser.ImportsOnly)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error with file %q : %q\n", fileName, err.Error())
-			os.Exit(1)
-		}
-		ast.Walk(v, file)
-	}
+type actionType int
 
-	currentDir, err := filepath.Abs(path.Dir(os.Args[0]))
+const (
+	actionVendor actionType = iota
+)
+
+type app struct {
+	currentDir       string
+	action           actionType
+	vendorParameters struct {
+		recursiveScanning bool
+		files             []string
+	}
+}
+
+func (self *app) parseCommandLineArguments() (err error) {
+	flag.Parse()
+	self.currentDir, err = filepath.Abs(path.Dir(os.Args[0]))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting absolute current path : %q", err.Error())
-		os.Exit(1)
+		return
 	}
 
-	for importPath, _ := range v.ImportPathsMap {
-		fmt.Print(importPath, " : ")
-		err, ok := vendor(currentDir, importPath)
-		if err != nil {
-			fmt.Print("Failed (", err.Error(), ")")
-		} else if !ok {
-			fmt.Print("Skipped")
-		} else {
-			fmt.Print("OK")
-		}
-		fmt.Print("\n")
+	actionName := flag.Arg(0)
+	switch actionName {
+	case "vendor":
+		self.action = actionVendor
+
+		err = self.parseVendorCommandLineArguments()
+	case "":
+		err = errors.New("Missing action's argument")
+	default:
+		err = fmt.Errorf("Unknown action %q", actionName)
 	}
+
+	return
+}
+
+func (self *app) parseVendorCommandLineArguments() error {
+	flag.BoolVar(&self.vendorParameters.recursiveScanning, "r", false, "Scan dirs recursively")
+	flag.Parse()
+
+	// take all args without the flags and the action name
+	pathArgs := flag.Args()[1:]
+
+	pathsCount := len(pathArgs)
+	if pathsCount == 0 {
+		return errors.New("No paths given")
+	}
+
+	// pre-allocation
+	self.vendorParameters.files = make([]string, 0, pathsCount)
+	var err error
+
+	for _, fileName := range pathArgs {
+		err = listFile(fileName, &self.vendorParameters.files, self.vendorParameters.recursiveScanning, true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func listFile(filename string, list *[]string, recursiveScanning, firstLevel bool) error {
+	fileInfo, err := os.Stat(filename)
+	if err != nil {
+		err = fmt.Errorf("Error with file %q : %q\n", filename, err.Error())
+		return err
+	}
+	if fileInfo.IsDir() {
+		if recursiveScanning || firstLevel {
+			fileInfos, err := ioutil.ReadDir(filename)
+			if err != nil {
+				return err
+			}
+			for _, fileInfo = range fileInfos {
+				err = listFile(fileInfo.Name(), list, recursiveScanning, false)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	} else {
+		*list = append(*list, filename)
+	}
+	return nil
 }
