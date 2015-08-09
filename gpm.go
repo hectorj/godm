@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 type actionType int
@@ -101,9 +102,11 @@ func listFile(filename string, list *[]string, recursiveScanning, firstLevel boo
 				return err
 			}
 			for _, fileInfo = range fileInfos {
-				err = listFile(fileInfo.Name(), list, recursiveScanning, false)
-				if err != nil {
-					return err
+				if strings.HasSuffix(fileInfo.Name(), ".go") {
+					err = listFile(fileInfo.Name(), list, recursiveScanning, false)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}

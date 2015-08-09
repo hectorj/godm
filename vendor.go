@@ -60,7 +60,7 @@ func vendorImport(dir string, importPath string) (err error, vendored bool) {
 	}
 
 	targetPath := path.Join("vendor", importPath)
-	if _, err = os.Stat(targetPath); err == nil {
+	if _, err = os.Stat(path.Join(mainRoot, targetPath)); err == nil {
 		//err = fmt.Errorf("%q already exists", targetPath)
 		// Already exists, skipping
 		return

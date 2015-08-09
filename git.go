@@ -109,3 +109,15 @@ func gitGetRootDir(dir string) (string, error) {
 	}
 	return strings.Trim(string(output), "\n"), nil
 }
+
+func gitInitSubmodules(repoDir string) ([]byte, error) {
+	cmd := exec.Command(gitCommand, "submodule", "init")
+	cmd.Dir = repoDir
+	return cmd.CombinedOutput()
+}
+
+func gitUpdateSubmodules(repoDir string) ([]byte, error) {
+	cmd := exec.Command(gitCommand, "submodule", "update")
+	cmd.Dir = repoDir
+	return cmd.CombinedOutput()
+}
