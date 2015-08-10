@@ -19,6 +19,7 @@ var submodulesRegexp = regexp.MustCompile(`\[submodule "vendor/([^"]+)"\]`)
 func main() {
 	checkGo15VendorActivated()
 
+	cli.VersionFlag.Name = "version" // We use "v" for verbose
 	app := cli.NewApp()
 	app.Name = "gpm"
 	app.Usage = "Package Manager for Go 1.5+"
@@ -30,8 +31,8 @@ func main() {
 	}
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "verbose",
-			Usage: "Verbose",
+			Name:  "v,verbose",
+			Usage: "Verbose output",
 		},
 	}
 	app.EnableBashCompletion = true
