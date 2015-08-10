@@ -1,82 +1,79 @@
-package main
+package gpm
 
-import (
-	"fmt"
-	"os"
-	"path"
-	"runtime"
-	"strings"
-)
+import "errors"
 
-func vendorImport(dir string, importPath string) (err error, vendored bool) {
-	gopath := os.Getenv("GOPATH")
-	goroot := runtime.GOROOT()
-	pkgDir := path.Join(gopath, "src", importPath)
-	if _, err = os.Stat(pkgDir); err != nil {
-		if os.IsNotExist(err) {
-			pkgDir = path.Join(goroot, "src", importPath)
-			if _, err = os.Stat(pkgDir); err != nil {
-				if os.IsNotExist(err) {
-					err = fmt.Errorf("Import path %q not found in GOPATH %q nor in GOROOT %q", importPath, gopath, goroot)
-				} else {
-					// It's a standard library package, skipping
-					err = nil
-				}
-			}
-		}
-		return
-	}
+var ErrOrphan = errors.New("Vendor does not have a parent project")
 
-	if strings.HasPrefix(pkgDir, dir) {
-		// It is a sub-package of the current one, skipping
-		return
-	}
-
-	var importRoot string
-	importRoot, err = gitGetRootDir(pkgDir)
-	if err != nil {
-		return
-	}
-	importPath = importRoot[len(gopath)+5:] // removes "$GOPATH/src/"
-
-	var commitHash, remoteURL string
-
-	commitHash, err = gitGetCurrentCommitHash(importRoot)
-	if err != nil {
-		return
-	}
-
-	remoteURL, err = gitGetRemoteURI(importRoot, false)
-	if err != nil {
-		return
-	}
-
-	var mainRoot string
-	mainRoot, err = gitGetRootDir(dir)
-	if err != nil {
-		return
-	}
-
-	targetPath := path.Join("vendor", importPath)
-	if _, err = os.Stat(path.Join(mainRoot, targetPath)); err == nil {
-		//err = fmt.Errorf("%q already exists", targetPath)
-		// Already exists, skipping
-		return
-	}
-
-	var output []byte
-	output, err = gitAddSubmodule(mainRoot, remoteURL, targetPath)
-	if err != nil {
-		Log.Debug(string(output))
-		return
-	}
-
-	_, err = gitCheckoutCommit(path.Join(mainRoot, targetPath), commitHash)
-	if err != nil {
-		Log.Debug(string(output))
-		return
-	}
-
-	vendored = true
-	return
+// Vendor represents a vendored project
+type Vendor interface {
+	LocalProject
+	// GetParent returns the project vendoring this one.
+	GetParent() Project
+	// SetParent saves the reference to the project vendoring this one.
+	SetParent(parent Project)
+	// GetBaseImportPath returns the base import path (the one containing all the eventual subpackages)
+	GetImportPath() string
+	// GetProject returns the vendor's project
+	GetProject() LocalProject
 }
+
+type vendor struct {
+	LocalProject
+	parent     Project
+	importPath string
+}
+
+func (self *vendor) GetProject() LocalProject {
+	return self.LocalProject
+}
+
+func (self *vendor) GetImportPath() string {
+	return self.importPath
+}
+
+func (self *vendor) GetParent() Project {
+	return self.parent
+}
+
+func (self *vendor) SetParent(parent Project) {
+	self.parent = parent
+}
+
+type goGettableVendor struct {
+	Vendor
+}
+
+//func (self *goGettableVendor) Copy() error {
+//	var parent Project
+//	if parent = self.GetParent(); parent == nil {
+//		// Vendor cannot copy itself into its parent if it does not have one.
+//		return ErrOrphan
+//	}
+//	importPath := self.GetImportPath()
+//
+//	//// `Go get` the package in a temporary GOPATH
+//	gopath, err := ioutil.TempDir("", "gopath-gpm-"+importPath)
+//	if err != nil {
+//		return err
+//	}
+//	defer os.RemoveAll(gopath)
+//	goBin, err := exec.LookPath("go")
+//	if err != nil {
+//		return err
+//	}
+//	cmd := exec.Command(goBin, "get", importPath)
+//	cmd.Env = []string{`GOPATH="` + gopath + `"`, "GO15VENDOREXPERIMENT=1"}
+//	if err = cmd.Run(); err != nil {
+//		return err
+//	}
+//	////
+//
+//	targetPath := path.Join(parent.GetBaseDir(), "vendor", importPath)
+//	if err = os.MkdirAll(targetPath, os.ModeDir); err != nil {
+//		return err
+//	}
+//	if err = CopyDir(path.Join(gopath, "src", importPath), targetPath); err != nil {
+//		return err
+//	}
+//	return nil
+//}

@@ -1,6 +1,11 @@
 # gpm
 A go1.5+ package manager.
 
+More precisely, a tool to manage your project's dependencies by vendoring them at pinpointed versions.
+
+It relies on the "GO15VENDOREXPERIMENT", so that other people (users and developers) can simply `go get` your project
+ without being forced to use `gpm` or any other tool that doesn't come with Go right out of the box.
+
 [![Build Status](https://travis-ci.org/hectorj/gpm.svg?branch=master)](https://travis-ci.org/hectorj/gpm) [![GoDoc](https://godoc.org/github.com/hectorj/gpm?status.svg)](https://godoc.org/github.com/hectorj/gpm/) [![Coverage Status](https://coveralls.io/repos/hectorj/gpm/badge.svg?branch=master)](https://coveralls.io/r/hectorj/gpm?branch=master)
 
 ## Table of Contents
@@ -35,13 +40,12 @@ Go 1.5+ (with `GO15VENDOREXPERIMENT=1`, else even if it runs it's kind of pointl
 # If you haven't already, enable the Go 1.5 vendor experiment (personally that line is in my ~/.bashrc).
 export GO15VENDOREXPERIMENT=1
 # Then it's a simple go get.
-go get github.com/hectorj/gpm
+go get github.com/hectorj/gpm/cmd/gpm
 ```
 
 ## Usage
 
-Right now it assumes your project is a git repository, and so are the packages you are vendoring.
-That should change in the future.
+Note : does not support Mercurial yet
 
 ### help
 
@@ -55,18 +59,16 @@ gpm --help
 
 ### vendor
 
-The `vendor` sub-command takes the go files you point it to, extract imports from them, and vendor these imports if possible and necessary.
+The `vendor` sub-command takes the current project you're in, extract imports from it, and vendor these imports if possible and necessary.
 
 ```bash
 # Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
-# Run gpm on the go files or directories from which you want to vendor imported packages.
-gpm vendor -r .
+# Run it.
+gpm vendor
 # If everything went well, you have new git submodules you can commit.
 git commit -m "Vendoring as git submodules done by gpm"
 ```
-
-It also takes directories, and can scan them recursively if the `-r` flag is set
 
 ### remove
 
