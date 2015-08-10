@@ -40,6 +40,9 @@ go get github.com/hectorj/gpm
 
 ## Usage
 
+Right now it assumes your project is a git repository, and so are the packages you are vendoring.
+That should change in the future.
+
 ### help
 
 Auto-generated help is available like this :
