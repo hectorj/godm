@@ -1,4 +1,4 @@
-package main
+package gpm
 
 import (
 	"fmt"
@@ -8,17 +8,20 @@ import (
 	"strings"
 )
 
-type visitor struct {
-	ImportPathsMap map[string]struct{}
-	ImportPaths    []string
+type importsExtractor struct {
+	ImportPaths Set
 }
 
-func extractImports(fileNames []string) ([]string, error) {
-	fs := token.NewFileSet()
-	v := &visitor{
-		ImportPathsMap: make(map[string]struct{}),
+func extractImports(fileNames Set) (Set, error) {
+	if len(fileNames) == 0 {
+		return nil, nil
 	}
-	for _, fileName := range fileNames {
+
+	fs := token.NewFileSet()
+	v := &importsExtractor{
+		ImportPaths: NewSet(),
+	}
+	for fileName := range fileNames {
 		file, err := parser.ParseFile(fs, fileName, nil, parser.ImportsOnly)
 		if err != nil {
 			return nil, fmt.Errorf("Error with file %q : %q\n", fileName, err.Error())
@@ -28,13 +31,9 @@ func extractImports(fileNames []string) ([]string, error) {
 	return v.ImportPaths, nil
 }
 
-func (self *visitor) Visit(node ast.Node) ast.Visitor {
+func (self *importsExtractor) Visit(node ast.Node) ast.Visitor {
 	if importDeclaration, ok := node.(*ast.ImportSpec); ok {
-		importPath := strings.Trim(importDeclaration.Path.Value, `"`)
-		if _, exists := self.ImportPathsMap[importPath]; !exists {
-			self.ImportPathsMap[importPath] = struct{}{}
-			self.ImportPaths = append(self.ImportPaths, importPath)
-		}
+		self.ImportPaths.Add(strings.Trim(importDeclaration.Path.Value, `"`))
 	}
 	return self
 }

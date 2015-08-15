@@ -1,4 +1,4 @@
-package main
+package gpm
 
 import (
 	"fmt"
@@ -13,11 +13,11 @@ import (
 func TestExtractImports(t *testing.T) {
 	testCases := map[string]struct {
 		src    string
-		result []string
+		result Set
 	}{
 		"empty": {
 			src:    "package main",
-			result: nil,
+			result: NewSet(),
 		},
 		"simple": {
 			src: `
@@ -25,9 +25,7 @@ func TestExtractImports(t *testing.T) {
 
 			import "test"
 			`,
-			result: []string{
-				"test",
-			},
+			result: NewSet("test"),
 		},
 		"multiple": {
 			src: `
@@ -38,10 +36,7 @@ func TestExtractImports(t *testing.T) {
 				"test2"
 			)
 			`,
-			result: []string{
-				"test",
-				"test2",
-			},
+			result: NewSet("test", "test2"),
 		},
 		"duplicates": {
 			src: `
@@ -52,9 +47,7 @@ func TestExtractImports(t *testing.T) {
 				"test"
 			)
 			`,
-			result: []string{
-				"test",
-			},
+			result: NewSet("test"),
 		},
 		"alias": {
 			src: `
@@ -65,10 +58,7 @@ func TestExtractImports(t *testing.T) {
 				test "test2"
 			)
 			`,
-			result: []string{
-				"test",
-				"test2",
-			},
+			result: NewSet("test", "test2"),
 		},
 	}
 
@@ -81,7 +71,7 @@ func TestExtractImports(t *testing.T) {
 
 		io.WriteString(file, testCase.src)
 
-		imports, err := extractImports([]string{file.Name()})
+		imports, err := extractImports(NewSet(file.Name()))
 		assert.Equal(t, testCase.result, imports, errorMessage)
 	}
 }
