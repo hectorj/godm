@@ -1,5 +1,5 @@
-# gpm
-A go1.5+ dependencies manager. [![Build Status](https://travis-ci.org/hectorj/gpm.svg?branch=master)](https://travis-ci.org/hectorj/gpm) [![GoDoc](https://godoc.org/github.com/hectorj/gpm?status.svg)](https://godoc.org/github.com/hectorj/gpm/) [![Coverage Status](https://coveralls.io/repos/hectorj/gpm/badge.svg?branch=master)](https://coveralls.io/r/hectorj/gpm?branch=master)
+# godm
+A go1.5+ dependencies manager. [![Build Status](https://travis-ci.org/hectorj/godm.svg?branch=master)](https://travis-ci.org/hectorj/godm) [![GoDoc](https://godoc.org/github.com/hectorj/godm?status.svg)](https://godoc.org/github.com/hectorj/godm/) [![Coverage Status](https://coveralls.io/repos/hectorj/godm/badge.svg?branch=master)](https://coveralls.io/r/hectorj/godm?branch=master)
 
 More precisely, a tool to manage your project's dependencies by vendoring them at pinpointed versions.
 
