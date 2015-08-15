@@ -7,3 +7,9 @@
 [submodule "vendor/github.com/codegangsta/cli"]
 	path = vendor/github.com/codegangsta/cli
 	url = https://github.com/codegangsta/cli
+[submodule "vendor/github.com/termie/go-shutil"]
+	path = vendor/github.com/termie/go-shutil
+	url = https://github.com/termie/go-shutil
+[submodule "vendor/github.com/tsuru/commandmocker"]
+	path = vendor/github.com/tsuru/commandmocker
+	url = https://github.com/tsuru/commandmocker
