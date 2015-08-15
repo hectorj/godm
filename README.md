@@ -14,15 +14,17 @@ It relies on the "GO15VENDOREXPERIMENT", so that other people (users and develop
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [gpm](#gpm)
-  - [Table of Contents](#table-of-contents)
-  - [Status](#status)
-  - [Installation](#installation)
-  - [Usage](#usage)
-    - [help](#help)
-    - [vendor](#vendor)
-    - [remove](#remove)
-  - [Bash Autocompletion](#bash-autocompletion)
+- [Status](#status)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+- [Upgrade](#upgrade)
+- [Usage](#usage)
+  - [help](#help)
+  - [vendor](#vendor)
+  - [remove](#remove)
+- [Bash Autocompletion](#bash-autocompletion)
+- [Migrating from another dependenices management tool](#migrating-from-another-dependenices-management-tool)
+  - [Godep](#godep)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -41,6 +43,12 @@ Go 1.5+ (with `GO15VENDOREXPERIMENT=1`, else even if it runs it's kind of pointl
 export GO15VENDOREXPERIMENT=1
 # Then it's a simple go get.
 go get github.com/hectorj/gpm/cmd/gpm
+```
+
+## Upgrade
+
+```bash
+go get -u github.com/hectorj/gpm/cmd/gpm
 ```
 
 ## Usage
@@ -85,3 +93,14 @@ git commit -m "Unvendoring done by gpm"
 ## Bash Autocompletion
 
 Copy [gpm_bash_autocomplete.bash](gpm_bash_autocomplete.bash) to `/etc/bash_completion.d/` to get command autocompletion (highly recommended)
+
+## Migrating from another dependenices management tool
+
+### Godep
+
+```bash
+godep restore
+GOPATH=`godep path`:$GOPATH gpm save
+```
+
+Once you have checked the migration went well, you can eventually `rm -rf ./Godeps`
