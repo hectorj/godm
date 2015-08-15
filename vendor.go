@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 import "errors"
 
@@ -52,7 +52,7 @@ type goGettableVendor struct {
 //	importPath := self.GetImportPath()
 //
 //	//// `Go get` the package in a temporary GOPATH
-//	gopath, err := ioutil.TempDir("", "gopath-gpm-"+importPath)
+//	gopath, err := ioutil.TempDir("", "gopath-godm-"+importPath)
 //	if err != nil {
 //		return err
 //	}

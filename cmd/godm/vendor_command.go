@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/cli"
-	"github.com/hectorj/gpm"
+	"github.com/hectorj/godm"
 )
 
 func vendor(c *cli.Context) {
@@ -16,7 +16,7 @@ func vendor(c *cli.Context) {
 		fatalErrorf("Too much arguments")
 	}
 
-	project, err := gpm.NewLocalProject(path.Dir(os.Args[0]))
+	project, err := godm.NewLocalProject(path.Dir(os.Args[0]))
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}
@@ -42,20 +42,20 @@ func vendor(c *cli.Context) {
 importsLoop:
 	for importPath := range imports {
 		if _, exists := vendors[importPath]; !exists {
-			vendorProject, canonicalImportPath, err := gpm.NewProjectFromImportPath(importPath)
+			vendorProject, canonicalImportPath, err := godm.NewProjectFromImportPath(importPath)
 			if _, exists := vendors[canonicalImportPath]; exists {
 				Log.Info("%q is a sub-package of %q which is already vendored", importPath, canonicalImportPath)
 				continue importsLoop
 			}
 
-			if localVendorProject, ok := vendorProject.(gpm.LocalProject); ok {
+			if localVendorProject, ok := vendorProject.(godm.LocalProject); ok {
 				if strings.HasPrefix(localVendorProject.GetBaseDir(), project.GetBaseDir()) {
 					Log.Debug("%q ignored because it is a sub-package of current project", canonicalImportPath)
 					continue importsLoop
 				}
 			}
 			if err != nil {
-				if err == gpm.ErrStandardLibrary {
+				if err == godm.ErrStandardLibrary {
 					Log.Debug("%q ignored because part of the standard library", canonicalImportPath)
 					err = nil
 				} else {

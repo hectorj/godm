@@ -5,7 +5,7 @@ import (
 	"path"
 
 	"github.com/codegangsta/cli"
-	"github.com/hectorj/gpm"
+	"github.com/hectorj/godm"
 )
 
 func remove(c *cli.Context) {
@@ -14,7 +14,7 @@ func remove(c *cli.Context) {
 		fatalErrorf("Expected exactly 1 argument instead of %d", len(c.Args()))
 	}
 
-	project, err := gpm.NewLocalProject(path.Dir(os.Args[0]))
+	project, err := godm.NewLocalProject(path.Dir(os.Args[0]))
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}
@@ -24,7 +24,7 @@ func remove(c *cli.Context) {
 
 	err = project.RemoveVendor(importPath)
 
-	if err == gpm.ErrUnknownVendor {
+	if err == godm.ErrUnknownVendor {
 		Log.Warning("Import path %q cannot be removed from vendors because it is not vendored in current project", importPath)
 		return
 	} else if err != nil {
