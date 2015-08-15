@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 import (
 	"fmt"
@@ -65,7 +65,7 @@ func TestExtractImports(t *testing.T) {
 	for caseName, testCase := range testCases {
 		errorMessage := fmt.Sprintf("Test case %q failed", caseName)
 
-		file, err := ioutil.TempFile("", "gpm-extractImports-test-"+caseName)
+		file, err := ioutil.TempFile("", "godm-extractImports-test-"+caseName)
 		assert.Nil(t, err, errorMessage)
 		defer os.Remove(file.Name())
 

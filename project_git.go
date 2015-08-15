@@ -1,11 +1,11 @@
-package gpm
+package godm
 
 import (
 	"path"
 
 	"fmt"
 
-	"github.com/hectorj/gpm/git"
+	"github.com/hectorj/godm/git"
 )
 
 type RemoteGitProject interface {

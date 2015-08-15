@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 import (
 	"io/ioutil"

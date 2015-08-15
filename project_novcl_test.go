@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 import (
 	"io/ioutil"
@@ -12,7 +12,7 @@ import (
 )
 
 func newProjectNoVCLProject(t *testing.T) (project *ProjectNoVCL) {
-	tmpDirPath, err := ioutil.TempDir("", "gpm-project_no_vcl_test")
+	tmpDirPath, err := ioutil.TempDir("", "godm-project_no_vcl_test")
 	assert.Nil(t, err, "Failed creating a temp dir for ProjectNoVCL tests.")
 
 	project = NewProjectNoVCL(tmpDirPath)

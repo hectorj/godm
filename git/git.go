@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hectorj/gpm/exec"
+	"github.com/hectorj/godm/exec"
 )
 
 var gitCommand = "git"

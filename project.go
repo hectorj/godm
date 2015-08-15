@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 
 	"strings"
 
-	"github.com/hectorj/gpm/git"
+	"github.com/hectorj/godm/git"
 )
 
 var (

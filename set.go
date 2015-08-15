@@ -1,4 +1,4 @@
-package gpm
+package godm
 
 // Set is a simple strings set implementation
 // Warning : It is not concurrency-safe

@@ -10,4 +10,4 @@ _cli_bash_autocomplete() {
      return 0
  }
 
- complete -F _cli_bash_autocomplete gpm
+ complete -F _cli_bash_autocomplete godm
