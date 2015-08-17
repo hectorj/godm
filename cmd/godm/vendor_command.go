@@ -6,6 +6,8 @@ import (
 
 	"strings"
 
+	"fmt"
+
 	"github.com/codegangsta/cli"
 	"github.com/hectorj/godm"
 )
@@ -20,7 +22,8 @@ func vendor(c *cli.Context) {
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}
-	Log.Debug("Project's Type : %T\nProject's Base Dir : %s", project, project.GetBaseDir())
+	Log.Debug("Project's Type : %T", project, project.GetBaseDir())
+	Log.Debug("Project's Base Dir : %s", project.GetBaseDir())
 
 	imports, err := project.GetImports()
 	if err != nil {
@@ -67,6 +70,7 @@ importsLoop:
 					fatalErrorf("Error vendoring import path %q : %s", canonicalImportPath, err.Error())
 				} else {
 					Log.Notice("%q vendored", canonicalImportPath)
+					fmt.Println(canonicalImportPath)
 				}
 			}
 

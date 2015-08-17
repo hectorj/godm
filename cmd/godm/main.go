@@ -15,6 +15,10 @@ var Log = logging.MustGetLogger("godm")
 
 var submodulesRegexp = regexp.MustCompile(`\[submodule "vendor/([^"]+)"\]`)
 
+var logFormatter = logging.MustStringFormatter(
+	"%{color}[%{level}] ▶ %{color:reset}%{message}",
+)
+
 func main() {
 	checkGo15VendorActivated()
 
@@ -30,14 +34,15 @@ func main() {
 	}
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "v,verbose",
+			Name:  "verbose",
 			Usage: "Verbose output",
 		},
 	}
 	app.EnableBashCompletion = true
 	app.Before = func(c *cli.Context) error {
+		logging.SetFormatter(logFormatter)
 		backend := logging.AddModuleLevel(logging.NewLogBackend(os.Stderr, "", 0))
-		if true || c.GlobalBool("verbose") {
+		if c.GlobalBool("verbose") {
 			backend.SetLevel(logging.DEBUG, "")
 		} else {
 			backend.SetLevel(logging.WARNING, "")
@@ -48,8 +53,13 @@ func main() {
 	}
 	app.Commands = []cli.Command{
 		{
+			Name:   "clean",
+			Usage:  "Removes vendors that are not imported in the current project. Outputs the import paths of vendors successfully removed.",
+			Action: clean,
+		},
+		{
 			Name:  "vendor",
-			Usage: "Scans imports from Go files and vendor them in the current Git repository. Takes files/directories path(s) as arguments",
+			Usage: "Vendors imports that are not vendored yet in the current project. Outputs the import paths of vendors successfully added.",
 			Flags: []cli.Flag{
 			// Removed for now. Here is the current behavior :
 			// - For Git projects : we start from the root dir and do scan recursively all sub-packages (except vendors)
@@ -71,7 +81,7 @@ func main() {
 		{
 			Name:    "remove",
 			Aliases: []string{"rm"},
-			Usage:   "Unvendors an import path. Takes a single import path as argument",
+			Usage:   "Unvendors an import path. Takes a single import path as argument.",
 			Flags:   []cli.Flag{
 			// Removed for now, as there is no confirmation asked anywhere
 			//				cli.BoolFlag{

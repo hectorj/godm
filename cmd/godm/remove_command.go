@@ -18,7 +18,8 @@ func remove(c *cli.Context) {
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}
-	Log.Debug("Project's Type : %T\nProject's Base Dir : %s", project, project.GetBaseDir())
+	Log.Debug("Project's Type : %T", project, project.GetBaseDir())
+	Log.Debug("Project's Base Dir : %s", project.GetBaseDir())
 
 	importPath := c.Args().First()
 
