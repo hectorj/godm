@@ -58,3 +58,28 @@ var copyTreeOptions = &shutil.CopyTreeOptions{
 func CopyDir(src, target string) error {
 	return shutil.CopyTree(src, target, copyTreeOptions)
 }
+
+func RemoveSubdirsWithNoFiles(dirPath string) (hasAtLeastOneFile bool, err error) {
+	var fileInfos []os.FileInfo
+	fileInfos, err = ioutil.ReadDir(dirPath)
+	if err != nil {
+		return
+	}
+
+	var subdirHasAtLeastOneFile bool
+	for _, fileInfo := range fileInfos {
+		if fileInfo.IsDir() {
+			subdirHasAtLeastOneFile, err = RemoveSubdirsWithNoFiles(path.Join(dirPath, fileInfo.Name()))
+			hasAtLeastOneFile = hasAtLeastOneFile || subdirHasAtLeastOneFile
+			if err != nil {
+				return
+			}
+		} else {
+			hasAtLeastOneFile = true
+		}
+	}
+	if !hasAtLeastOneFile {
+		os.RemoveAll(dirPath)
+	}
+	return
+}

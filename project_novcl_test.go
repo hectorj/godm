@@ -21,66 +21,67 @@ func newProjectNoVCLProject(t *testing.T) (project *ProjectNoVCL) {
 	return
 }
 
+var testCases = map[string]struct {
+	prepare             func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func())
+	expectedImportPaths map[string]LocalProject
+}{
+	"none": {
+		prepare:             func(_ *testing.T, _ *ProjectNoVCL, _ ...interface{}) func() { return func() {} },
+		expectedImportPaths: nil,
+	},
+	"1 NoVCL vendor": {
+		prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func()) {
+			targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
+			err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			targetFilePath := path.Join(targetDirPath, "whatever.go")
+			file, err := os.Create(targetFilePath)
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			_, err = file.WriteString("package test1\n")
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			tmpBinPath, err := commandmocker.Error("git", "fatal: Not a git repository (or any of the parent directories): /fake/path/whatever/test1/", 128)
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			tearDown = func() {
+				commandmocker.Remove(tmpBinPath)
+			}
+			return
+		},
+		expectedImportPaths: map[string]LocalProject{
+			"test1": &ProjectNoVCL{},
+		},
+	},
+	"1 Git vendor": {
+		prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func()) {
+			targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
+			err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			targetFilePath := path.Join(targetDirPath, "whatever.go")
+			file, err := os.Create(targetFilePath)
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			_, err = file.WriteString("package test1\n")
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			tmpBinPath, err := commandmocker.Add("git", targetDirPath+"\n")
+			assert.Nil(t, err, failMessageAndArgs...)
+
+			tearDown = func() {
+				commandmocker.Remove(tmpBinPath)
+			}
+			return
+		},
+		expectedImportPaths: map[string]LocalProject{
+			"test1": &localGitProject{},
+		},
+	},
+}
+
 func TestProjectNoVCL_GetVendors(t *testing.T) {
-	testCases := map[string]struct {
-		prepare             func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func())
-		expectedImportPaths map[string]LocalProject
-	}{
-		"none": {
-			prepare:             func(_ *testing.T, _ *ProjectNoVCL, _ ...interface{}) func() { return func() {} },
-			expectedImportPaths: nil,
-		},
-		"1 NoVCL vendor": {
-			prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func()) {
-				targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
-				err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				targetFilePath := path.Join(targetDirPath, "whatever.go")
-				file, err := os.Create(targetFilePath)
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				_, err = file.WriteString("package test1\n")
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				tmpBinPath, err := commandmocker.Error("git", "fatal: Not a git repository (or any of the parent directories): /fake/path/whatever/test1/", 128)
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				tearDown = func() {
-					commandmocker.Remove(tmpBinPath)
-				}
-				return
-			},
-			expectedImportPaths: map[string]LocalProject{
-				"test1": &ProjectNoVCL{},
-			},
-		},
-		"1 Git vendor": {
-			prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) (tearDown func()) {
-				targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
-				err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				targetFilePath := path.Join(targetDirPath, "whatever.go")
-				file, err := os.Create(targetFilePath)
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				_, err = file.WriteString("package test1\n")
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				tmpBinPath, err := commandmocker.Add("git", targetDirPath+"\n")
-				assert.Nil(t, err, failMessageAndArgs...)
-
-				tearDown = func() {
-					commandmocker.Remove(tmpBinPath)
-				}
-				return
-			},
-			expectedImportPaths: map[string]LocalProject{
-				"test1": &localGitProject{},
-			},
-		},
-	}
 
 	tearDowns := make(map[string]func(), len(testCases))
 	defer func() {
@@ -126,6 +127,67 @@ testCasesLoop:
 			if !assert.IsType(t, projectType, vendor.GetProject(), specificFailMessageAndArgs...) {
 				continue vendorsLoop
 			}
+		}
+
+		tearDowns[caseName]()
+		delete(tearDowns, caseName)
+	}
+
+}
+
+func TestProjectNoVCL_RemoveVendor(t *testing.T) {
+
+	tearDowns := make(map[string]func(), len(testCases))
+	defer func() {
+		for _, tearDown := range tearDowns {
+			tearDown()
+		}
+	}()
+
+	//testCasesLoop:
+	for caseName, testCase := range testCases {
+		failMessageAndArgs := []interface{}{"Test case %q failed.", caseName}
+		project := newProjectNoVCLProject(t)
+		defer os.RemoveAll(project.GetBaseDir())
+
+		tearDowns[caseName] = testCase.prepare(t, project, failMessageAndArgs...)
+
+	vendorsLoop:
+		for importPath, _ := range testCase.expectedImportPaths {
+			specificFailMessageAndArgs := make([]interface{}, len(failMessageAndArgs)+1)
+			copy(specificFailMessageAndArgs, failMessageAndArgs)
+			specificFailMessageAndArgs[0] = specificFailMessageAndArgs[0].(string) + " (vendor %q)"
+			specificFailMessageAndArgs[len(failMessageAndArgs)] = importPath
+
+			vendorPath := path.Join(project.GetBaseDir(), "vendor", importPath)
+
+			// Check that vendor's dir exists
+			_, err := os.Stat(vendorPath)
+
+			if !assert.Nil(t, err, specificFailMessageAndArgs...) {
+				continue vendorsLoop
+			}
+
+			// Remove vendor
+			err = project.RemoveVendor(importPath)
+
+			if !assert.Nil(t, err, specificFailMessageAndArgs...) {
+				continue vendorsLoop
+			}
+
+			// Check that vendor's dir doesn't exist anymore
+			_, err = os.Stat(vendorPath)
+
+			if !assert.True(t, os.IsNotExist(err), specificFailMessageAndArgs...) {
+				continue vendorsLoop
+			}
+		}
+
+		// Check that PROJECTPATH/vendor is empty or doesn't exists
+		fileInfos, err := ioutil.ReadDir(path.Join(project.GetBaseDir(), "vendor"))
+
+		if os.IsNotExist(err) || assert.Nil(t, err, failMessageAndArgs...) {
+			assert.Len(t, fileInfos, 0)
 		}
 
 		tearDowns[caseName]()
