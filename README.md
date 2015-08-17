@@ -110,7 +110,7 @@ git commit -m "Unvendoring done by godm"
 
 Copy [godm_bash_autocomplete.bash](godm_bash_autocomplete.bash) to `/etc/bash_completion.d/` to get command autocompletion (highly recommended)
 
-## Migrating from another dependenices management tool
+## Migrating from another dependencies management tool
 
 ### Godep
 
