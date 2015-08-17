@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Copy into /etc/bash_completion.d/ to mget autocompletion for the godm command
+
 _cli_bash_autocomplete() {
      local cur prev opts base
      COMPREPLY=()
