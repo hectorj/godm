@@ -159,6 +159,7 @@ func (self *ProjectNoVCL) RemoveVendor(importPath string) error {
 	}
 	vendor.SetParent(nil)
 	delete(self.Vendors, importPath)
+	RemoveSubdirsWithNoFiles(path.Join(self.GetBaseDir(), "vendor", strings.Split(vendor.GetImportPath(), "/")[0]))
 	return nil
 }
 

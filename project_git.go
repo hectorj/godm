@@ -3,7 +3,7 @@ package godm
 import (
 	"path"
 
-	"fmt"
+	"strings"
 
 	"github.com/hectorj/godm/git"
 )
@@ -178,21 +178,25 @@ func (self *localGitProject) RemoveVendor(importPath string) error {
 	if !exists {
 		return ErrUnknownVendor
 	}
-	v := vendor.GetProject().(LocalGitProject)
-	fmt.Println(v.GetBaseDir())
+
 	switch vendor.GetProject().(type) {
 	case LocalGitProject:
-		fmt.Println("test1")
 		targetPath := path.Join("vendor", importPath)
-		err := git.RemoveSubmodule(self.GetBaseDir(), targetPath)
+		err = git.RemoveSubmodule(self.GetBaseDir(), targetPath)
 		if err != nil {
 			return err
 		}
 		vendor.SetParent(nil)
 		delete(self.Vendors, importPath)
-		return nil
 	default:
-		fmt.Println("test3")
-		return self.ProjectNoVCL.RemoveVendor(importPath)
+		err = self.ProjectNoVCL.RemoveVendor(importPath)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	RemoveSubdirsWithNoFiles(path.Join(self.GetBaseDir(), "vendor", strings.Split(vendor.GetImportPath(), "/")[0]))
+
+	return nil
 }
