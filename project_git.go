@@ -186,6 +186,7 @@ func (self *localGitProject) RemoveVendor(importPath string) error {
 		if err != nil {
 			return err
 		}
+		RemoveSubdirsWithNoFiles(path.Join(self.GetBaseDir(), ".git/modules/vendor", strings.Split(vendor.GetImportPath(), "/")[0]))
 		vendor.SetParent(nil)
 		delete(self.Vendors, importPath)
 	default:
