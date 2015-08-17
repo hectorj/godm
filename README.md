@@ -23,6 +23,7 @@ Vendors are [there](vendor) as [Git submodules](.gitmodules)
 - [Usage](#usage)
   - [help](#help)
   - [vendor](#vendor)
+  - [clean](#clean)
   - [remove](#remove)
 - [Bash Autocompletion](#bash-autocompletion)
 - [Migrating from another dependenices management tool](#migrating-from-another-dependenices-management-tool)
@@ -69,7 +70,7 @@ godm --help
 
 ### vendor
 
-The `vendor` sub-command takes the current project you're in, extract imports from it, and vendor these imports if possible and necessary.
+The `vendor` sub-command vendors imports that are not vendored yet in the current project. Outputs the import paths of vendors successfully added.
 
 ```bash
 # Go to your package directory, wherever that is.
@@ -77,18 +78,31 @@ cd $GOPATH/src/myPackage
 # Run it.
 godm vendor
 # If everything went well, you have new git submodules you can commit.
-git commit -m "Vendoring as git submodules done by godm"
+git commit -m "Vendoring done by godm"
+```
+
+### clean
+
+The `clean` sub-command removes vendors that are not imported in the current project. Outputs the import paths of vendors successfully removed.
+
+```bash
+# Go to your package directory, wherever that is.
+cd $GOPATH/src/myPackage
+# Run it.
+godm clean
+# If everything went well, you may have some Git submodules removals you can commit.
+git commit -m "Vendors cleaning done by godm"
 ```
 
 ### remove
 
-The `remove` sub-command unvendors an import path.
+The `remove` sub-command unvendors an import path. Takes a single import path as argument.
 ```bash
 # Go to your package directory, wherever that is.
 cd $GOPATH/src/myPackage
 # Run godm
 godm remove github.com/my/import/path
-# If everything went well, you have a git submodule removal you can commit.
+# If everything went well, you have a Git submodule removal you can commit.
 git commit -m "Unvendoring done by godm"
 ```
 

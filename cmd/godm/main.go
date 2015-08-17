@@ -54,12 +54,12 @@ func main() {
 	app.Commands = []cli.Command{
 		{
 			Name:   "clean",
-			Usage:  "Removes vendors that are not imported in the current project. Outputs the import paths of vendors successfully removed",
+			Usage:  "Removes vendors that are not imported in the current project. Outputs the import paths of vendors successfully removed.",
 			Action: clean,
 		},
 		{
 			Name:  "vendor",
-			Usage: "Scans imports from Go files and vendor them in the current Git repository. Outputs the import paths of vendors successfully added",
+			Usage: "Vendors imports that are not vendored yet in the current project. Outputs the import paths of vendors successfully added.",
 			Flags: []cli.Flag{
 			// Removed for now. Here is the current behavior :
 			// - For Git projects : we start from the root dir and do scan recursively all sub-packages (except vendors)
@@ -81,7 +81,7 @@ func main() {
 		{
 			Name:    "remove",
 			Aliases: []string{"rm"},
-			Usage:   "Unvendors an import path. Takes a single import path as argument",
+			Usage:   "Unvendors an import path. Takes a single import path as argument.",
 			Flags:   []cli.Flag{
 			// Removed for now, as there is no confirmation asked anywhere
 			//				cli.BoolFlag{
