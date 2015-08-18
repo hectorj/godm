@@ -10,6 +10,8 @@ import (
 
 	"strings"
 
+	"path/filepath"
+
 	"github.com/hectorj/godm/git"
 )
 
@@ -50,7 +52,7 @@ var ErrStandardLibrary = errors.New("Import path is part of the standard library
 func NewProjectFromImportPath(importPath string) (Project, string, error) {
 	// Checking if the import path is in the GOPATH
 	// @TODO : support multiple GOPATHs
-	gopaths := strings.Split(os.Getenv("GOPATH"), ":")
+	gopaths := filepath.SplitList(os.Getenv("GOPATH"))
 
 goPathLoop:
 	for _, gopath := range gopaths {
@@ -68,7 +70,12 @@ goPathLoop:
 			if info.IsDir() {
 				// The dir does appear in the GOPATH
 				project, err := NewLocalProject(fullpath)
-				canonicalImportPath := pathlib.Clean(strings.TrimSuffix(importPath, strings.TrimPrefix(fullpath, project.GetBaseDir())))
+				var canonicalImportPath string
+				if err == nil {
+					canonicalImportPath = pathlib.Clean(strings.TrimSuffix(importPath, strings.TrimPrefix(fullpath, project.GetBaseDir())))
+				} else {
+					canonicalImportPath = importPath
+				}
 				return project, canonicalImportPath, err
 			}
 		}

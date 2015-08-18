@@ -101,7 +101,7 @@ func main() {
 
 				vendors, err := project.GetVendors()
 
-				if err != nil || vendors == nil {
+				if err != nil {
 					return
 				}
 
