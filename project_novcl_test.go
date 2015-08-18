@@ -195,3 +195,23 @@ func TestProjectNoVCL_RemoveVendor(t *testing.T) {
 	}
 
 }
+
+func TestProjectNoVCL_AddVendor(t *testing.T) {
+	project := newProjectNoVCLProject(t)
+	defer os.RemoveAll(project.GetBaseDir())
+
+	futureVendor := newProjectNoVCLProject(t)
+	defer os.RemoveAll(futureVendor.GetBaseDir())
+
+	importPath := "completely/madeup/importpath"
+	actualVendor, err := project.AddVendor(importPath, futureVendor)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, path.Join(project.GetBaseDir(), "vendor", importPath), actualVendor.GetBaseDir())
+
+	fileInfo, err := os.Stat(actualVendor.GetBaseDir())
+
+	assert.Nil(t, err)
+	assert.True(t, fileInfo.IsDir())
+}

@@ -26,6 +26,7 @@ func NewProjectNoVCL(path string) *ProjectNoVCL {
 		BaseDir:      path,
 		Recursive:    false,
 		PathExcludes: DefaultExcludesRegexp, //@TODO : parametrize
+		Vendors:      make(map[string]Vendor),
 	}
 }
 
@@ -48,7 +49,7 @@ func (self *ProjectNoVCL) getVendors() (map[string]Vendor, error) {
 		return nil, err
 	}
 	if len(vendorGoFiles) == 0 {
-		return nil, nil
+		return make(map[string]Vendor), nil
 	}
 	vendorDirs := NewSet()
 	for filePath := range vendorGoFiles {
