@@ -35,10 +35,10 @@ func (self *remoteGitProject) GetGitURI() string {
 
 func (self *remoteGitProject) Install(destination string) (LocalProject, error) {
 	destination = path.Clean(destination)
-	if err := git.Clone(destination, self.GetGitURI()); err != nil {
+	if err := git.Service.Clone(destination, self.GetGitURI()); err != nil {
 		return nil, err
 	}
-	return NewGitProjectFromPath(destination)
+	return NewGitProjectFromPath(destination, destination)
 }
 
 type localGitProject struct {
@@ -51,10 +51,13 @@ type localGitProject struct {
 
 var _ LocalGitProject = (*localGitProject)(nil)
 
-func NewGitProjectFromPath(path string) (*localGitProject, error) {
-	gitBaseDir, err := git.GetRootDir(path)
+func NewGitProjectFromPath(path, rootPath string) (*localGitProject, error) {
+	gitBaseDir, err := git.Service.GetRootDir(path)
 	if err != nil {
 		return nil, err
+	}
+	if len(gitBaseDir) < len(rootPath) {
+		return nil, git.ErrNotAGitRepository
 	}
 	project := &localGitProject{
 		ProjectNoVCL: *(NewProjectNoVCL(gitBaseDir)),
@@ -78,12 +81,12 @@ func (self *localGitProject) getReference() (reference string, err error) {
 	if self.GetBaseDir() == "" {
 		return "master", nil
 	}
-	return git.GetCurrentCommitHash(self.GetBaseDir())
+	return git.Service.GetCurrentCommitHash(self.GetBaseDir())
 }
 
 func (self *localGitProject) GetRemote() (RemoteGitProject, error) {
 	if !self.remoteChecked {
-		URI, err := git.GetRemoteURI(self.GetBaseDir())
+		URI, err := git.Service.GetRemoteURI(self.GetBaseDir())
 		if err != nil {
 			if err == git.ErrNoRemote {
 				self.remoteChecked = true
@@ -119,8 +122,8 @@ func (self *localGitProject) AddVendor(importPath string, project Project) (Vend
 	absoluteTargetPath := path.Join(self.GetBaseDir(), relativeTargetPath)
 	switch typedProject := project.(type) {
 	case RemoteGitProject:
-		git.AddSubmodule(self.GetBaseDir(), typedProject.GetGitURI(), relativeTargetPath)
-		v.LocalProject, err = NewGitProjectFromPath(absoluteTargetPath)
+		git.Service.AddSubmodule(self.GetBaseDir(), typedProject.GetGitURI(), relativeTargetPath)
+		v.LocalProject, err = NewGitProjectFromPath(absoluteTargetPath, absoluteTargetPath)
 		return v, err
 	case LocalGitProject:
 		remote, err := typedProject.GetRemote()
@@ -133,13 +136,13 @@ func (self *localGitProject) AddVendor(importPath string, project Project) (Vend
 				return nil, err
 			}
 
-			err = git.AddSubmodule(self.GetBaseDir(), remote.GetGitURI(), relativeTargetPath)
+			err = git.Service.AddSubmodule(self.GetBaseDir(), remote.GetGitURI(), relativeTargetPath)
 			if err != nil {
 				return nil, err
 			}
 
 			errorHandler := func() {
-				git.RemoveSubmodule(self.GetBaseDir(), relativeTargetPath)
+				git.Service.RemoveSubmodule(self.GetBaseDir(), relativeTargetPath)
 			}
 			defer func() {
 				if panicErr := recover(); panicErr != nil {
@@ -148,13 +151,13 @@ func (self *localGitProject) AddVendor(importPath string, project Project) (Vend
 				}
 			}()
 
-			err = git.CheckoutCommit(absoluteTargetPath, reference)
+			err = git.Service.CheckoutCommit(absoluteTargetPath, reference)
 			if err != nil {
 				errorHandler()
 				return nil, err
 			}
 
-			v.LocalProject, err = NewGitProjectFromPath(absoluteTargetPath)
+			v.LocalProject, err = NewGitProjectFromPath(absoluteTargetPath, absoluteTargetPath)
 
 			return v, err
 		}
@@ -182,7 +185,7 @@ func (self *localGitProject) RemoveVendor(importPath string) error {
 	switch vendor.GetProject().(type) {
 	case LocalGitProject:
 		targetPath := path.Join("vendor", importPath)
-		err = git.RemoveSubmodule(self.GetBaseDir(), targetPath)
+		err = git.Service.RemoveSubmodule(self.GetBaseDir(), targetPath)
 		if err != nil {
 			return err
 		}

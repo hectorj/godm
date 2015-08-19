@@ -8,10 +8,13 @@ import (
 
 	"path"
 
+	"github.com/hectorj/godm/git"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewProjectFromImportPath(t *testing.T) {
+	git.Service = git.NewGitService()
+
 	tmpDirPath, err := ioutil.TempDir("", "godm-project_test")
 	assert.Nil(t, err)
 

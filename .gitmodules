@@ -1,6 +1,3 @@
-[submodule "vendor/github.com/stretchr/testify"]
-	path = vendor/github.com/stretchr/testify
-	url = https://github.com/stretchr/testify
 [submodule "vendor/github.com/op/go-logging"]
 	path = vendor/github.com/op/go-logging
 	url = https://github.com/op/go-logging
@@ -10,6 +7,9 @@
 [submodule "vendor/github.com/termie/go-shutil"]
 	path = vendor/github.com/termie/go-shutil
 	url = https://github.com/termie/go-shutil
-[submodule "vendor/github.com/tsuru/commandmocker"]
-	path = vendor/github.com/tsuru/commandmocker
-	url = https://github.com/tsuru/commandmocker
+[submodule "vendor/github.com/stretchr/testify"]
+	path = vendor/github.com/stretchr/testify
+	url = https://github.com/stretchr/testify
+[submodule "vendor/github.com/dropbox/godropbox"]
+	path = vendor/github.com/dropbox/godropbox
+	url = https://github.com/dropbox/godropbox
