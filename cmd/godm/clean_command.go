@@ -6,6 +6,8 @@ import (
 
 	"fmt"
 
+	"strings"
+
 	"github.com/codegangsta/cli"
 	"github.com/hectorj/godm"
 )
@@ -41,8 +43,16 @@ func clean(c *cli.Context) {
 	Log.Debug("Vendors list : %# v", vendors)
 
 	errorCount := 0
+
+vendorsLoop:
 	for vendorImportPath := range vendors {
 		if !imports.Has(vendorImportPath) {
+			for importPath := range imports {
+				if strings.HasPrefix(importPath, vendorImportPath) {
+					// We are importing a sub-package of this vendor
+					continue vendorsLoop
+				}
+			}
 			err = project.RemoveVendor(vendorImportPath)
 			if err != nil {
 				errorCount++
