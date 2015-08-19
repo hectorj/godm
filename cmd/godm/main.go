@@ -94,7 +94,7 @@ func main() {
 				if len(c.Args()) > 0 {
 					return
 				}
-				project, err := godm.NewLocalProject(path.Dir(os.Args[0]))
+				project, err := godm.NewLocalProject(path.Dir(os.Args[0]), "")
 				if err != nil {
 					return
 				}

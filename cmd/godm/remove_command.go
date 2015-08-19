@@ -14,7 +14,7 @@ func remove(c *cli.Context) {
 		fatalErrorf("Expected exactly 1 argument instead of %d", len(c.Args()))
 	}
 
-	project, err := godm.NewLocalProject(path.Dir(os.Args[0]))
+	project, err := godm.NewLocalProject(path.Dir(os.Args[0]), "")
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}

@@ -22,15 +22,15 @@ func init() {
 	}
 }
 
-func Clone(targetPath, remoteURI string) error {
+func (self gitService) Clone(targetPath, remoteURI string) error {
 	return exec.Cmd("", gitCommand, "clone", remoteURI, targetPath).GetError()
 }
 
-func AddSubmodule(repoDir, remoteURI, targetPath string) error {
+func (self gitService) AddSubmodule(repoDir, remoteURI, targetPath string) error {
 	return exec.Cmd(repoDir, gitCommand, "submodule", "add", "-f", remoteURI, targetPath).GetError()
 }
 
-func RemoveSubmodule(repoDir, targetPath string) error {
+func (self gitService) RemoveSubmodule(repoDir, targetPath string) error {
 	result := exec.Cmd(repoDir, gitCommand, "submodule", "deinit", "-f", targetPath)
 	if err := result.GetError(); err != nil {
 		return err
@@ -44,7 +44,7 @@ func RemoveSubmodule(repoDir, targetPath string) error {
 	return exec.Cmd(repoDir, "rm", "-rf", path.Join(".git/modules/", targetPath)).GetError()
 }
 
-func CheckoutCommit(repoDir, commitHash string) error {
+func (self gitService) CheckoutCommit(repoDir, commitHash string) error {
 	return exec.Cmd(repoDir, gitCommand, "checkout", commitHash).GetError()
 }
 
@@ -52,10 +52,11 @@ var remoteExtractRegexp = regexp.MustCompile(`^([^\s]+)\s+([^\s]+) \(fetch\)`)
 
 var ErrNoRemote = errors.New("No remote found")
 
-func GetRemoteURI(repoDir string) (string, error) {
+func (self gitService) GetRemoteURI(repoDir string) (string, error) {
 	result := exec.Cmd(repoDir, gitCommand, "remote", "-v")
 
 	if err := result.GetError(); err != nil {
+		// @TODO : identify "Not a Git repo" errors
 		return "", err
 	}
 	if len(bytes.Trim(result.GetStdout(), "\n")) == 0 {
@@ -68,7 +69,7 @@ func GetRemoteURI(repoDir string) (string, error) {
 	return matches[2], nil
 }
 
-func GetCurrentCommitHash(repoDir string) (string, error) {
+func (self gitService) GetCurrentCommitHash(repoDir string) (string, error) {
 	result := exec.Cmd(repoDir, gitCommand, "rev-parse", "--verify", "HEAD")
 
 	if err := result.GetError(); err != nil {
@@ -79,7 +80,7 @@ func GetCurrentCommitHash(repoDir string) (string, error) {
 
 var ErrNotAGitRepository = errors.New("Not a git repository")
 
-func GetRootDir(dir string) (string, error) {
+func (self gitService) GetRootDir(dir string) (string, error) {
 	result := exec.Cmd(dir, gitCommand, "rev-parse", "--show-toplevel")
 
 	if err := result.GetError(); err != nil {
@@ -91,10 +92,14 @@ func GetRootDir(dir string) (string, error) {
 	return strings.Trim(string(result.GetStdout()), "\n"), nil
 }
 
-func InitSubmodules(repoDir string) error {
+func (self gitService) InitRepo(repoDir string) error {
+	return exec.Cmd(repoDir, gitCommand, "init").GetError()
+}
+
+func (self gitService) InitSubmodules(repoDir string) error {
 	return exec.Cmd(repoDir, gitCommand, "submodule", "init").GetError()
 }
 
-func UpdateSubmodules(repoDir string) error {
+func (self gitService) UpdateSubmodules(repoDir string) error {
 	return exec.Cmd(repoDir, gitCommand, "submodule", "update").GetError()
 }

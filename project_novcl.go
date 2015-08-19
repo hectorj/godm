@@ -58,7 +58,7 @@ func (self *ProjectNoVCL) getVendors() (map[string]Vendor, error) {
 	result := make(map[string]Vendor, len(vendorDirs))
 	for vendorDir := range vendorDirs {
 		// @TODO : optimize. We can know if a project includes its subpackages, avoiding us processing them for nothing
-		vendorProject, err := NewLocalProject(vendorDir)
+		vendorProject, err := NewLocalProject(vendorDir, vendorPath)
 		if err != nil {
 			return nil, err
 		}

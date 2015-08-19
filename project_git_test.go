@@ -11,26 +11,43 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newProjectNoVCLProject(t *testing.T) (project *ProjectNoVCL) {
-	tmpDirPath, err := ioutil.TempDir("", "godm-project_no_vcl_test")
-	assert.Nil(t, err, "Failed creating a temp dir for ProjectNoVCL tests.")
+func newLocalGitProject(t *testing.T, gitStub *git.GitStub) (project *localGitProject, gitRepoStub *git.GitRepoStub) {
+	tmpDirPath, err := ioutil.TempDir("", "godm-local_git_project_test")
+	if !assert.Nil(t, err, "Failed creating a temp dir for localGitProject tests.") {
+		t.FailNow()
+	}
 
-	project = NewProjectNoVCL(tmpDirPath)
-	assert.Equal(t, tmpDirPath, project.GetBaseDir(), "Fresh ProjectNoVCL from temp dir has a wrong base dir.")
+	if gitStub == nil {
+		gitStub = git.NewGitStub()
+	}
+
+	gitRepoStub = git.NewGitRepoStub()
+
+	gitStub.Repos[tmpDirPath] = gitRepoStub
+
+	git.Service = gitStub
+
+	project, err = NewGitProjectFromPath(tmpDirPath, tmpDirPath)
+	if !assert.Nil(t, err, "Failed creating a localGitProject for tests.") {
+		t.FailNow()
+	}
+	if !assert.Equal(t, tmpDirPath, project.GetBaseDir(), "Fresh localGitProject from temp dir has a wrong base dir.") {
+		t.FailNow()
+	}
 
 	return
 }
 
-var testCases = map[string]struct {
-	prepare             func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{})
+var gitTestCases = map[string]struct {
+	prepare             func(t *testing.T, project *localGitProject, gitRepoStub *git.GitRepoStub, failMessageAndArgs ...interface{})
 	expectedImportPaths map[string]LocalProject
 }{
 	"none": {
-		prepare:             func(_ *testing.T, _ *ProjectNoVCL, _ ...interface{}) {},
+		prepare:             func(_ *testing.T, _ *localGitProject, _ *git.GitRepoStub, _ ...interface{}) {},
 		expectedImportPaths: nil,
 	},
 	"1 NoVCL vendor": {
-		prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) {
+		prepare: func(t *testing.T, project *localGitProject, _ *git.GitRepoStub, failMessageAndArgs ...interface{}) {
 			targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
 			err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
 			assert.Nil(t, err, failMessageAndArgs...)
@@ -41,15 +58,13 @@ var testCases = map[string]struct {
 
 			_, err = file.WriteString("package test1\n")
 			assert.Nil(t, err, failMessageAndArgs...)
-
-			git.Service = git.NewGitStub()
 		},
 		expectedImportPaths: map[string]LocalProject{
 			"test1": &ProjectNoVCL{},
 		},
 	},
 	"1 Git vendor": {
-		prepare: func(t *testing.T, project *ProjectNoVCL, failMessageAndArgs ...interface{}) {
+		prepare: func(t *testing.T, project *localGitProject, gitRepoStub *git.GitRepoStub, failMessageAndArgs ...interface{}) {
 			targetDirPath := path.Join(project.GetBaseDir(), "vendor", "test1") + "/"
 			err := os.MkdirAll(targetDirPath, os.ModeDir|os.ModePerm)
 			assert.Nil(t, err, failMessageAndArgs...)
@@ -61,11 +76,11 @@ var testCases = map[string]struct {
 			_, err = file.WriteString("package test1\n")
 			assert.Nil(t, err, failMessageAndArgs...)
 
-			gitStub := git.NewGitStub()
+			gitStub := git.Service.(*git.GitStub)
 
 			gitStub.Repos[targetDirPath] = git.NewGitRepoStub()
 
-			git.Service = gitStub
+			gitRepoStub.Submodules[path.Join("vendor", "test1")] = gitStub.Repos[targetDirPath]
 		},
 		expectedImportPaths: map[string]LocalProject{
 			"test1": &localGitProject{},
@@ -73,14 +88,14 @@ var testCases = map[string]struct {
 	},
 }
 
-func TestProjectNoVCL_GetVendors(t *testing.T) {
+func TestLocalGitProject_GetVendors(t *testing.T) {
 testCasesLoop:
-	for caseName, testCase := range testCases {
+	for caseName, testCase := range gitTestCases {
 		failMessageAndArgs := []interface{}{"Test case %q failed.", caseName}
-		project := newProjectNoVCLProject(t)
+		project, gitRepoStub := newLocalGitProject(t, nil)
 		defer os.RemoveAll(project.GetBaseDir())
 
-		testCase.prepare(t, project, failMessageAndArgs...)
+		testCase.prepare(t, project, gitRepoStub, failMessageAndArgs...)
 
 		vendors, err := project.GetVendors()
 		if !assert.Nil(t, err, failMessageAndArgs...) {
@@ -116,14 +131,14 @@ testCasesLoop:
 
 }
 
-func TestProjectNoVCL_RemoveVendor(t *testing.T) {
+func TestLocalGitProject_RemoveVendor(t *testing.T) {
 	//testCasesLoop:
-	for caseName, testCase := range testCases {
+	for caseName, testCase := range gitTestCases {
 		failMessageAndArgs := []interface{}{"Test case %q failed.", caseName}
-		project := newProjectNoVCLProject(t)
+		project, gitRepoStub := newLocalGitProject(t, nil)
 		defer os.RemoveAll(project.GetBaseDir())
 
-		testCase.prepare(t, project, failMessageAndArgs...)
+		testCase.prepare(t, project, gitRepoStub, failMessageAndArgs...)
 
 	vendorsLoop:
 		for importPath, _ := range testCase.expectedImportPaths {
@@ -163,14 +178,13 @@ func TestProjectNoVCL_RemoveVendor(t *testing.T) {
 			assert.Len(t, fileInfos, 0)
 		}
 	}
-
 }
 
-func TestProjectNoVCL_AddVendor(t *testing.T) {
-	project := newProjectNoVCLProject(t)
+func TestLocalGitProject_AddVendor(t *testing.T) {
+	project, _ := newLocalGitProject(t, nil)
 	defer os.RemoveAll(project.GetBaseDir())
 
-	futureVendor := newProjectNoVCLProject(t)
+	futureVendor, _ := newLocalGitProject(t, git.Service.(*git.GitStub))
 	defer os.RemoveAll(futureVendor.GetBaseDir())
 
 	importPath := "completely/madeup/importpath"

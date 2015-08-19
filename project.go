@@ -69,7 +69,7 @@ goPathLoop:
 			}
 			if info.IsDir() {
 				// The dir does appear in the GOPATH
-				project, err := NewLocalProject(fullpath)
+				project, err := NewLocalProject(fullpath, gopath)
 				var canonicalImportPath string
 				if err == nil {
 					canonicalImportPath = pathlib.Clean(strings.TrimSuffix(importPath, strings.TrimPrefix(fullpath, project.GetBaseDir())))
@@ -101,8 +101,8 @@ goPathLoop:
 }
 
 // NewLocalProject takes a path and builds a Project object from it, determining if it is a Git/Mercurial/No VCL/etc. project
-func NewLocalProject(path string) (LocalProject, error) {
-	gitProject, err := NewGitProjectFromPath(path)
+func NewLocalProject(path string, rootPath string) (LocalProject, error) {
+	gitProject, err := NewGitProjectFromPath(path, rootPath)
 	if err == git.ErrNotAGitRepository {
 		return NewProjectNoVCL(path), nil
 	} else if err != nil {

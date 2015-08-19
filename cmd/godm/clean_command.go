@@ -16,7 +16,7 @@ func clean(c *cli.Context) {
 		fatalErrorf("Too much arguments")
 	}
 
-	project, err := godm.NewLocalProject(path.Dir(os.Args[0]))
+	project, err := godm.NewLocalProject(path.Dir(os.Args[0]), "")
 	if err != nil {
 		fatalErrorf("Error building the current project : %s", err.Error())
 	}
