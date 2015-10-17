@@ -2,7 +2,7 @@ language: go
 env:
  - GO15VENDOREXPERIMENT=1
 go:
- - 1.5
+ - 1.5.1
  - tip
 before_install:
  - go get -u github.com/axw/gocov/gocov
